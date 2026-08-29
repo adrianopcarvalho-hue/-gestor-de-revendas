@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-title" content="Gestor de Revendas">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Gestor de Revendas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f7;color:#171717}
+header{background:#111;color:#fff;padding:18px 16px 16px;position:sticky;top:0;z-index:5}
+h1{font-size:22px;margin:0 0 4px}.sub{font-size:13px;color:#aaa}
+nav{display:flex;gap:8px;overflow:auto;padding:10px 12px;background:#fff;border-bottom:1px solid #ddd}
+button{border:0;border-radius:11px;padding:12px 15px;font-weight:700;font-size:14px;min-height:44px}nav button{background:#eee;white-space:nowrap}nav button.active{background:#111;color:#fff}
+main{max-width:760px;margin:auto;padding:14px}.card{background:#fff;border:1px solid #ddd;border-radius:16px;padding:16px;margin-bottom:12px}
+h2{font-size:19px;margin:0 0 12px}h3{font-size:15px;margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-size:12px;color:#666;display:block}input,select,textarea{display:block;width:100%;margin-top:5px;border:1px solid #ccc;border-radius:10px;padding:12px;font-size:16px;background:#fff;color:#111}
+.full{grid-column:1/-1}.primary{background:#111;color:#fff;width:100%}.danger{color:#c00;background:#fee}.muted{color:#777;font-size:13px}.money{font-variant-numeric:tabular-nums}.green{color:#087a35}.red{color:#c00}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px}.kpi{background:#f7f7f7;border-radius:12px;padding:12px}.kpi small{display:block;color:#777}.kpi strong{font-size:18px;display:block;margin-top:4px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eee}.row:last-child{border-bottom:0}.pill{font-size:11px;background:#eee;border-radius:20px;padding:5px 8px;white-space:nowrap}
+.hidden{display:none}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1}.note{background:#f0f6ff;border-radius:12px;padding:12px;font-size:13px}
+@media(max-width:480px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.kpis{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header><h1>📱 Gestor de Revendas</h1><div class="sub">Compra → reparo → custos → venda → garantia → lucro real</div></header>
+<nav>
+<button data-page="novo" class="active">+ Nova operação</button>
+<button data-page="dashboard">📊 Dashboard</button>
+<button data-page="historico">📋 Histórico</button>
+<button data-page="backup">⚙️ Backup</button>
+</nav>
+<main id="app"></main>
+<script>
+const KEY="gestor_revendas_v1";
+let db=JSON.parse(localStorage.getItem(KEY)||'{"ops":[]}');
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(v)||0);
+const n=id=>Number($("#"+id)?.value)||0;
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+let page="novo";
+
+function costs(){
+ return n("tela")+n("bateria")+n("pecas")+n("mao")+n("acessorios")+
+ n("gasbusca")+n("gasentrega")+n("frete")+n("deslocamento")+
+ n("taxa")+n("outvenda");
+}
+function calc(){
+ if(!$("#compra"))return;
+ let c=n("compra"),x=costs(),g=n("garantia"),v=n("venda"),total=c+x+g,l=v-total,m=v?l/v*100:0;
+ $("#rcompra").textContent=money(c);$("#rextras").textContent=money(x);
+ $("#rgar").textContent=money(g);$("#rtotal").textContent=money(total);
+ $("#rlucro").textContent=money(l);$("#rlucro").className="money "+(l>=0?"green":"red");
+ $("#rmargem").textContent=m.toFixed(1)+"%";
+}
+function novo(){
+ $("#app").innerHTML=`<h2>Nova operação</h2>
+ <div class="note">Cadastre cada aparelho separadamente. O sistema considera todos os custos para chegar ao <b>custo real</b>.</div>
+ <form id="form">
+ <div class="card"><h3>📱 Aparelho</h3><div class="grid">
+ <label>Modelo<input id="modelo" required placeholder="iPhone 13 128GB"></label>
+ <label>Condição<select id="cond"><option>Tela quebrada</option><option>Bateria ruim</option><option>Outro defeito</option><option>Funcionando</option></select></label>
+ <label class="full">IMEI / identificação<input id="imei" placeholder="Opcional"></label>
+ <label class="full">Observações<textarea id="obs" rows="2" placeholder="Cor, estado, detalhes..."></textarea></label></div></div>
+ <div class="card"><h3>💰 Compra</h3><label>Valor pago no aparelho<input id="compra" type="number" min="0" step=".01" required></label></div>
+ <div class="card"><h3>🔧 Reparo e preparação</h3><div class="grid">
+ <label>Tela<input class="cost" id="tela" type="number" min="0" step=".01"></label>
+ <label>Bateria<input class="cost" id="bateria" type="number" min="0" step=".01"></label>
+ <label>Outras peças<input class="cost" id="pecas" type="number" min="0" step=".01"></label>
+ <label>Mão de obra<input class="cost" id="mao" type="number" min="0" step=".01"></label>
+ <label>Acessórios / película<input class="cost" id="acessorios" type="number" min="0" step=".01"></label></div></div>
+ <div class="card"><h3>🚗 Logística</h3><div class="grid">
+ <label>Gasolina para buscar<input class="cost" id="gasbusca" type="number" min="0" step=".01"></label>
+ <label>Gasolina para entregar<input class="cost" id="gasentrega" type="number" min="0" step=".01"></label>
+ <label>Frete / transporte<input class="cost" id="frete" type="number" min="0" step=".01"></label>
+ <label>Outros deslocamentos<input class="cost" id="deslocamento" type="number" min="0" step=".01"></label></div></div>
+ <div class="card"><h3>💳 Venda</h3><div class="grid">
+ <label>Valor de venda<input class="cost" id="venda" type="number" min="0" step=".01"></label>
+ <label>Taxa / maquininha<input class="cost" id="taxa" type="number" min="0" step=".01"></label>
+ <label>Outros custos da venda<input class="cost" id="outvenda" type="number" min="0" step=".01"></label></div></div>
+ <div class="card"><h3>🛡️ Garantia</h3><div class="grid">
+ <label>Custo da garantia<input id="garantia" type="number" min="0" step=".01"></label>
+ <label>Descrição<input id="garobs" placeholder="Problema / peça / troca"></label></div></div>
+ <div class="card"><h3>📊 Resultado</h3><div class="kpis">
+ <div class="kpi"><small>Compra</small><strong id="rcompra">R$ 0,00</strong></div>
+ <div class="kpi"><small>Custos extras</small><strong id="rextras">R$ 0,00</strong></div>
+ <div class="kpi"><small>Garantia</small><strong id="rgar">R$ 0,00</strong></div>
+ <div class="kpi"><small>Custo real</small><strong id="rtotal">R$ 0,00</strong></div>
+ <div class="kpi"><small>Lucro líquido</small><strong id="rlucro">R$ 0,00</strong></div>
+ <div class="kpi"><small>Margem</small><strong id="rmargem">0,0%</strong></div></div></div>
+ <button class="primary">Salvar operação</button></form>`;
+ $$("#form input").forEach(x=>x.addEventListener("input",calc));
+ $("#form").addEventListener("submit",e=>{e.preventDefault();
+  db.ops.push({id:Date.now(),modelo:$("#modelo").value.trim(),cond:$("#cond").value,imei:$("#imei").value.trim(),obs:$("#obs").value.trim(),
+  compra:n("compra"),custos:costs(),garantia:n("garantia"),garobs:$("#garobs").value.trim(),venda:n("venda"),data:new Date().toLocaleDateString("pt-BR")});
+  save();page="dashboard";render();
+ });calc();
+}
+function dashboard(){
+ let a=db.ops, fat=a.reduce((s,o)=>s+o.venda,0), custo=a.reduce((s,o)=>s+o.compra+o.custos+o.garantia,0), lucro=fat-custo;
+ $("#app").innerHTML=`<h2>Dashboard</h2><div class="kpis">
+ <div class="kpi"><small>Operações</small><strong>${a.length}</strong></div>
+ <div class="kpi"><small>Faturamento</small><strong>${money(fat)}</strong></div>
+ <div class="kpi"><small>Custo real</small><strong>${money(custo)}</strong></div>
+ <div class="kpi"><small>Lucro líquido</small><strong class="${lucro>=0?"green":"red"}">${money(lucro)}</strong></div></div>
+ <div class="card" style="margin-top:12px"><h3>Últimas operações</h3>${a.length?a.slice().reverse().slice(0,8).map(card).join(""):"<div class='muted'>Nenhuma operação cadastrada.</div>"}</div>`;
+}
+function card(o){
+ let l=o.venda-o.compra-o.custos-o.garantia,t=o.compra+o.custos+o.garantia;
+ return `<div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.cond)} · ${o.data}</div><div class="muted">Custo real: ${money(t)} · Venda: ${money(o.venda)}</div></div><b class="${l>=0?"green":"red"}">${money(l)}</b></div>`;
+}
+function historico(){
+ $("#app").innerHTML=`<h2>Histórico</h2>${db.ops.length?db.ops.slice().reverse().map(o=>`<div class="card"><div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.cond)} · ${o.data}</div></div><span class="pill">${o.venda?"Vendido":"Sem venda"}</span></div>
+ <div class="kpis"><div class="kpi"><small>Compra</small><strong>${money(o.compra)}</strong></div><div class="kpi"><small>Reparos/logística/venda</small><strong>${money(o.custos)}</strong></div><div class="kpi"><small>Garantia</small><strong>${money(o.garantia)}</strong></div><div class="kpi"><small>Custo real</small><strong>${money(o.compra+o.custos+o.garantia)}</strong></div><div class="kpi"><small>Venda</small><strong>${money(o.venda)}</strong></div><div class="kpi"><small>Lucro</small><strong class="${o.venda-o.compra-o.custos-o.garantia>=0?"green":"red"}">${money(o.venda-o.compra-o.custos-o.garantia)}</strong></div></div>
+ ${o.imei?`<p class="muted">IMEI: ${esc(o.imei)}</p>`:""}${o.obs?`<p class="muted">${esc(o.obs)}</p>`:""}${o.garobs?`<p class="muted">Garantia: ${esc(o.garobs)}</p>`:""}
+ <button class="danger" onclick="del(${o.id})">Excluir operação</button></div>`).join(""):"<div class='card muted'>Nenhuma operação cadastrada.</div>"}`;
+}
+function backup(){
+ $("#app").innerHTML=`<h2>Backup e transferência</h2><div class="card"><h3>💾 Seus dados</h3><p class="muted">Os lançamentos ficam salvos neste navegador. Exporte um backup para levar tudo para outro aparelho ou instalação.</p><div class="actions"><button id="export">Exportar backup</button><button id="clear" class="danger">Apagar todos os dados</button></div></div>
+ <div class="card"><h3>📥 Restaurar</h3><p class="muted">Escolha um arquivo de backup .json.</p><input id="file" type="file" accept=".json,application/json"></div>`;
+ $("#export").onclick=()=>{let blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="gestor-revendas-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+ $("#clear").onclick=()=>{if(confirm("Apagar todas as operações?")){db={ops:[]};save();render()}};
+ $("#file").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.ops||!Array.isArray(x.ops))throw 0;db=x;save();alert("Backup restaurado!");page="dashboard";render()}catch{alert("Arquivo de backup inválido.")}};r.readAsText(f)};
+}
+function del(id){if(confirm("Excluir esta operação?")){db.ops=db.ops.filter(o=>o.id!==id);save();historico()}}
+function render(){if(page==="novo")novo();if(page==="dashboard")dashboard();if(page==="historico")historico();if(page==="backup")backup();$$("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page))}
+$$("nav button").forEach(b=>b.onclick=()=>{page=b.dataset.page;render()});render();
+</script>
+<script>
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>

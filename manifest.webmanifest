@@ -1,0 +1,10 @@
+{
+  "name": "Gestor de Revendas",
+  "short_name": "Revendas",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#111827",
+  "lang": "pt-BR",
+  "description": "Gestão de compra, reparo, venda, garantia e lucro real."
+}
