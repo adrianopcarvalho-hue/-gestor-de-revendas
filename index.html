@@ -20,15 +20,16 @@ label{font-size:12px;color:#666;display:block}input,select,textarea{display:bloc
 .full{grid-column:1/-1}.primary{background:#111;color:#fff;width:100%}.danger{color:#c00;background:#fee}.muted{color:#777;font-size:13px}.money{font-variant-numeric:tabular-nums}.green{color:#087a35}.red{color:#c00}
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px}.kpi{background:#f7f7f7;border-radius:12px;padding:12px}.kpi small{display:block;color:#777}.kpi strong{font-size:18px;display:block;margin-top:4px}
 .row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eee}.row:last-child{border-bottom:0}.pill{font-size:11px;background:#eee;border-radius:20px;padding:5px 8px;white-space:nowrap}
-.hidden{display:none}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1}.note{background:#f0f6ff;border-radius:12px;padding:12px;font-size:13px}
+.hidden{display:none}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1}.note{background:#f0f6ff;border-radius:12px;padding:12px;font-size:13px}.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50}.modalbox{background:#fff;width:min(760px,100%);border-radius:20px 20px 0 0;padding:18px;max-height:90vh;overflow:auto}.modalbox h2{margin-top:0}.close{background:#eee}
 @media(max-width:480px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.kpis{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<header><h1>📱 Gestor de Revendas</h1><div class="sub">Compra → reparo → custos → venda → garantia → lucro real</div></header>
+<header><h1>📦 Gestor de Revendas</h1><div class="sub">Compra → custos → preço sugerido → venda real → garantia → lucro real</div></header>
 <nav>
 <button data-page="novo" class="active">+ Nova operação</button>
 <button data-page="dashboard">📊 Dashboard</button>
+<button data-page="estoque">📦 Estoque</button>
 <button data-page="historico">📋 Histórico</button>
 <button data-page="backup">⚙️ Backup</button>
 </nav>
@@ -41,49 +42,60 @@ const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).
 const n=id=>Number($("#"+id)?.value)||0;
 const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-let page="novo";
+let page="novo", editId=null;
 
 function costs(){
  return n("tela")+n("bateria")+n("pecas")+n("mao")+n("acessorios")+
  n("gasbusca")+n("gasentrega")+n("frete")+n("deslocamento")+
- n("taxa")+n("outvenda");
+ n("taxa")+n("outvenda")+n("outroscustos");
 }
 function calc(){
  if(!$("#compra"))return;
  let c=n("compra"),x=costs(),g=n("garantia"),v=n("venda"),total=c+x+g,l=v-total,m=v?l/v*100:0;
+ let md=n("margemDesejada")||20, sugestao=total/(1-md/100); if(!isFinite(sugestao)||sugestao<0)sugestao=0;
+ $("#precoSugerido").value=sugestao.toFixed(2);
+ if($("#comparativoVenda")) $("#comparativoVenda").innerHTML=`Preço sugerido: <b>${money(sugestao)}</b> · Venda real: <b>${v?money(v):"—"}</b>${v?` · Diferença: <b class="${v>=sugestao?"green":"red"}">${money(v-sugestao)}</b>`:""}`;
  $("#rcompra").textContent=money(c);$("#rextras").textContent=money(x);
  $("#rgar").textContent=money(g);$("#rtotal").textContent=money(total);
  $("#rlucro").textContent=money(l);$("#rlucro").className="money "+(l>=0?"green":"red");
  $("#rmargem").textContent=m.toFixed(1)+"%";
 }
 function novo(){
- $("#app").innerHTML=`<h2>Nova operação</h2>
- <div class="note">Cadastre cada aparelho separadamente. O sistema considera todos os custos para chegar ao <b>custo real</b>.</div>
+ const o=editId?db.ops.find(x=>x.id===editId):null;
+ const legacyExtra=(o && !o.detalhesCustos)?Number(o.custos||0):0;
+ const val=(k,d="")=>o?.[k]??d;
+ $("#app").innerHTML=`<h2>${o?"✏️ Editar operação":"Nova operação"}</h2>
+ <div class="note">${o?"Altere qualquer informação e salve. O lançamento original será atualizado.":"Cadastre cada aparelho separadamente. O sistema considera todos os custos para chegar ao <b>custo real</b>."}</div>
  <form id="form">
  <div class="card"><h3>📱 Aparelho</h3><div class="grid">
- <label>Modelo<input id="modelo" required placeholder="iPhone 13 128GB"></label>
- <label>Condição<select id="cond"><option>Tela quebrada</option><option>Bateria ruim</option><option>Outro defeito</option><option>Funcionando</option></select></label>
- <label class="full">IMEI / identificação<input id="imei" placeholder="Opcional"></label>
- <label class="full">Observações<textarea id="obs" rows="2" placeholder="Cor, estado, detalhes..."></textarea></label></div></div>
- <div class="card"><h3>💰 Compra</h3><label>Valor pago no aparelho<input id="compra" type="number" min="0" step=".01" required></label></div>
+ <label>Produto<input id="modelo" required placeholder="iPhone 13 128GB" value="${esc(val("modelo"))}"></label>
+ <label>Categoria<select id="categoria">${["Celular / Smartphone","Videogame","Computador / Notebook","Tablet","Console / Acessórios","Eletrônicos","Outros"].map(x=>`<option ${val("categoria","Celular / Smartphone")==x?"selected":""}>${x}</option>`).join("")}</select></label>
+ <label>Condição<select id="cond">${["Tela quebrada","Bateria ruim","Outro defeito","Funcionando"].map(x=>`<option ${val("cond")==x?"selected":""}>${x}</option>`).join("")}</select></label>
+ <label class="full">IMEI / identificação<input id="imei" placeholder="Opcional" value="${esc(val("imei"))}"></label>
+ <label class="full">Observações<textarea id="obs" rows="2" placeholder="Cor, estado, detalhes...">${esc(val("obs"))}</textarea></label></div></div>
+ <div class="card"><h3>💰 Compra</h3><label>Valor pago no aparelho<input id="compra" type="number" min="0" step=".01" required value="${val("compra",0)}"></label></div>
  <div class="card"><h3>🔧 Reparo e preparação</h3><div class="grid">
- <label>Tela<input class="cost" id="tela" type="number" min="0" step=".01"></label>
- <label>Bateria<input class="cost" id="bateria" type="number" min="0" step=".01"></label>
- <label>Outras peças<input class="cost" id="pecas" type="number" min="0" step=".01"></label>
- <label>Mão de obra<input class="cost" id="mao" type="number" min="0" step=".01"></label>
- <label>Acessórios / película<input class="cost" id="acessorios" type="number" min="0" step=".01"></label></div></div>
+ <label>Tela<input class="cost" id="tela" type="number" min="0" step=".01" value="${val("tela",0)}"></label>
+ <label>Bateria<input class="cost" id="bateria" type="number" min="0" step=".01" value="${val("bateria",0)}"></label>
+ <label>Outras peças<input class="cost" id="pecas" type="number" min="0" step=".01" value="${val("pecas",0)}"></label>
+ <label>Mão de obra<input class="cost" id="mao" type="number" min="0" step=".01" value="${val("mao",0)}"></label>
+ <label>Acessórios / película<input class="cost" id="acessorios" type="number" min="0" step=".01" value="${val("acessorios",0)}"></label>
+ <label>Outros custos<input class="cost" id="outroscustos" type="number" min="0" step=".01" value="${val("outroscustos",legacyExtra)}"></label></div></div>
  <div class="card"><h3>🚗 Logística</h3><div class="grid">
- <label>Gasolina para buscar<input class="cost" id="gasbusca" type="number" min="0" step=".01"></label>
- <label>Gasolina para entregar<input class="cost" id="gasentrega" type="number" min="0" step=".01"></label>
- <label>Frete / transporte<input class="cost" id="frete" type="number" min="0" step=".01"></label>
- <label>Outros deslocamentos<input class="cost" id="deslocamento" type="number" min="0" step=".01"></label></div></div>
+ <label>Gasolina para buscar<input class="cost" id="gasbusca" type="number" min="0" step=".01" value="${val("gasbusca",0)}"></label>
+ <label>Gasolina para entregar<input class="cost" id="gasentrega" type="number" min="0" step=".01" value="${val("gasentrega",0)}"></label>
+ <label>Frete / transporte<input class="cost" id="frete" type="number" min="0" step=".01" value="${val("frete",0)}"></label>
+ <label>Outros deslocamentos<input class="cost" id="deslocamento" type="number" min="0" step=".01" value="${val("deslocamento",0)}"></label></div></div>
  <div class="card"><h3>💳 Venda</h3><div class="grid">
- <label>Valor de venda<input class="cost" id="venda" type="number" min="0" step=".01"></label>
- <label>Taxa / maquininha<input class="cost" id="taxa" type="number" min="0" step=".01"></label>
- <label>Outros custos da venda<input class="cost" id="outvenda" type="number" min="0" step=".01"></label></div></div>
+ <label>Margem desejada (%)<input id="margemDesejada" type="number" min="0" max="99" step=".1" value="${val("margemDesejada",20)}"></label>
+ <label>Preço sugerido<input id="precoSugerido" type="number" step=".01" readonly value="${val("precoSugerido",0)}"></label>
+ <label>Valor REAL da venda<input id="venda" type="number" min="0" step=".01" value="${val("venda",0)}"></label>
+ <label>Taxa / maquininha<input class="cost" id="taxa" type="number" min="0" step=".01" value="${val("taxa",0)}"></label>
+ <label>Outros custos da venda<input class="cost" id="outvenda" type="number" min="0" step=".01" value="${val("outvenda",0)}"></label></div>
+ <p class="muted">O preço sugerido usa o custo real e a margem desejada. No estoque, deixe a venda em R$ 0,00. Quando vender, informe o <b>valor REAL recebido</b> para comparar com a sugestão.</p><div class="note" id="comparativoVenda">Preço sugerido: R$ 0,00 · Venda real: R$ 0,00</div></div>
  <div class="card"><h3>🛡️ Garantia</h3><div class="grid">
- <label>Custo da garantia<input id="garantia" type="number" min="0" step=".01"></label>
- <label>Descrição<input id="garobs" placeholder="Problema / peça / troca"></label></div></div>
+ <label>Custo da garantia<input id="garantia" type="number" min="0" step=".01" value="${val("garantia",0)}"></label>
+ <label>Descrição<input id="garobs" placeholder="Problema / peça / troca" value="${esc(val("garobs"))}"></label></div></div>
  <div class="card"><h3>📊 Resultado</h3><div class="kpis">
  <div class="kpi"><small>Compra</small><strong id="rcompra">R$ 0,00</strong></div>
  <div class="kpi"><small>Custos extras</small><strong id="rextras">R$ 0,00</strong></div>
@@ -91,32 +103,60 @@ function novo(){
  <div class="kpi"><small>Custo real</small><strong id="rtotal">R$ 0,00</strong></div>
  <div class="kpi"><small>Lucro líquido</small><strong id="rlucro">R$ 0,00</strong></div>
  <div class="kpi"><small>Margem</small><strong id="rmargem">0,0%</strong></div></div></div>
- <button class="primary">Salvar operação</button></form>`;
- $$("#form input").forEach(x=>x.addEventListener("input",calc));
+ <div class="actions"><button class="primary">${o?"Salvar alterações":"Salvar operação"}</button>${o?'<button type="button" id="cancelar">Cancelar</button>':""}</div>
+ </form>`;
+ $$("#form input, #form select, #form textarea").forEach(x=>x.addEventListener("input",calc));
  $("#form").addEventListener("submit",e=>{e.preventDefault();
-  db.ops.push({id:Date.now(),modelo:$("#modelo").value.trim(),cond:$("#cond").value,imei:$("#imei").value.trim(),obs:$("#obs").value.trim(),
-  compra:n("compra"),custos:costs(),garantia:n("garantia"),garobs:$("#garobs").value.trim(),venda:n("venda"),data:new Date().toLocaleDateString("pt-BR")});
-  save();page="dashboard";render();
- });calc();
+  const data={modelo:$("#modelo").value.trim(),categoria:$("#categoria").value,cond:$("#cond").value,imei:$("#imei").value.trim(),obs:$("#obs").value.trim(),
+  compra:n("compra"),custos:costs(),margemDesejada:n("margemDesejada"),precoSugerido:n("precoSugerido"),garantia:n("garantia"),garobs:$("#garobs").value.trim(),venda:n("venda"),
+  tela:n("tela"),bateria:n("bateria"),pecas:n("pecas"),mao:n("mao"),acessorios:n("acessorios"),
+  gasbusca:n("gasbusca"),gasentrega:n("gasentrega"),frete:n("frete"),deslocamento:n("deslocamento"),taxa:n("taxa"),outvenda:n("outvenda"),outroscustos:n("outroscustos"),detalhesCustos:true};
+  if(editId){const i=db.ops.findIndex(x=>x.id===editId); if(i>=0) db.ops[i]={...db.ops[i],...data,ultimaEdicao:new Date().toLocaleDateString("pt-BR")};}
+  else db.ops.push({id:Date.now(),...data,data:new Date().toLocaleDateString("pt-BR")});
+  save();editId=null;page="historico";render();
+ });
+ $("#cancelar")?.addEventListener("click",()=>{editId=null;page="historico";render()});
+ calc();
 }
+function isSold(o){return Number(o.venda)>0}
+function suggested(o){let c=realCost(o),m=Number(o.margemDesejada||20);return c/(1-m/100)}
+function realCost(o){return Number(o.compra||0)+Number(o.custos||0)+Number(o.garantia||0)}
+function profit(o){return Number(o.venda||0)-realCost(o)}
+function status(o){return isSold(o)?"Vendido":"Em estoque"}
 function dashboard(){
- let a=db.ops, fat=a.reduce((s,o)=>s+o.venda,0), custo=a.reduce((s,o)=>s+o.compra+o.custos+o.garantia,0), lucro=fat-custo;
+ let a=db.ops,sold=a.filter(isSold),stock=a.filter(o=>!isSold(o));
+ let fat=sold.reduce((s,o)=>s+o.venda,0), custo=sold.reduce((s,o)=>s+realCost(o),0), lucro=fat-custo;
+ let estoque=stock.reduce((s,o)=>s+realCost(o),0);
+ let sugeridoVendido=sold.reduce((s,o)=>s+suggested(o),0), difSug=sold.reduce((s,o)=>s+(Number(o.venda||0)-suggested(o)),0);
  $("#app").innerHTML=`<h2>Dashboard</h2><div class="kpis">
  <div class="kpi"><small>Operações</small><strong>${a.length}</strong></div>
+ <div class="kpi"><small>Vendas</small><strong>${sold.length}</strong></div>
  <div class="kpi"><small>Faturamento</small><strong>${money(fat)}</strong></div>
- <div class="kpi"><small>Custo real</small><strong>${money(custo)}</strong></div>
- <div class="kpi"><small>Lucro líquido</small><strong class="${lucro>=0?"green":"red"}">${money(lucro)}</strong></div></div>
+ <div class="kpi"><small>Lucro líquido</small><strong class="${lucro>=0?"green":"red"}">${money(lucro)}</strong></div>
+ <div class="kpi"><small>Estoque</small><strong>${stock.length} aparelhos</strong></div>
+ <div class="kpi"><small>Capital no estoque</small><strong>${money(estoque)}</strong></div><div class="kpi"><small>Venda real × sugerida</small><strong class="${difSug>=0?"green":"red"}">${money(difSug)}</strong></div></div>
  <div class="card" style="margin-top:12px"><h3>Últimas operações</h3>${a.length?a.slice().reverse().slice(0,8).map(card).join(""):"<div class='muted'>Nenhuma operação cadastrada.</div>"}</div>`;
 }
 function card(o){
- let l=o.venda-o.compra-o.custos-o.garantia,t=o.compra+o.custos+o.garantia;
- return `<div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.cond)} · ${o.data}</div><div class="muted">Custo real: ${money(t)} · Venda: ${money(o.venda)}</div></div><b class="${l>=0?"green":"red"}">${money(l)}</b></div>`;
+ let l=profit(o),t=realCost(o);
+ return `<div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.categoria||"Celular / Smartphone")} · ${esc(o.cond)} · ${o.data}</div><div class="muted">Custo real: ${money(t)} · ${isSold(o)?"Venda: "+money(o.venda):"Ainda não vendido"}</div></div><b class="${isSold(o)?(l>=0?"green":"red"):""}">${isSold(o)?money(l):"ESTOQUE"}</b></div>`;
+}
+function estoque(){
+ let a=db.ops.filter(o=>!isSold(o)),capital=a.reduce((s,o)=>s+realCost(o),0);
+ $("#app").innerHTML=`<h2>📦 Estoque</h2>
+ <div class="kpis"><div class="kpi"><small>Aparelhos não vendidos</small><strong>${a.length}</strong></div><div class="kpi"><small>Capital investido</small><strong>${money(capital)}</strong></div></div>
+ <div class="card" style="margin-top:12px"><h3>Em estoque</h3>${a.length?a.slice().reverse().map(o=>stockCard(o)).join(""):"<div class='muted'>Nenhum aparelho no estoque. 🎉</div>"}</div>`;
+}
+function stockCard(o){
+ return `<div class="card" style="background:#fafafa"><div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.categoria||"Celular / Smartphone")} · ${esc(o.cond)} · Entrada: ${o.data}</div>${o.imei?`<div class="muted">IMEI: ${esc(o.imei)}</div>`:""}</div><span class="pill">ESTOQUE</span></div>
+ <div class="kpis"><div class="kpi"><small>Compra</small><strong>${money(o.compra)}</strong></div><div class="kpi"><small>Custos extras</small><strong>${money(o.custos)}</strong></div><div class="kpi"><small>Custo real</small><strong>${money(realCost(o))}</strong></div><div class="kpi"><small>Preço sugerido</small><strong>${money(suggested(o))}</strong></div></div>
+ <div class="actions"><button onclick="edit(${o.id})">✏️ Editar</button><button class="primary" onclick="sell(${o.id})">💰 Vender</button></div></div>`;
 }
 function historico(){
- $("#app").innerHTML=`<h2>Histórico</h2>${db.ops.length?db.ops.slice().reverse().map(o=>`<div class="card"><div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.cond)} · ${o.data}</div></div><span class="pill">${o.venda?"Vendido":"Sem venda"}</span></div>
- <div class="kpis"><div class="kpi"><small>Compra</small><strong>${money(o.compra)}</strong></div><div class="kpi"><small>Reparos/logística/venda</small><strong>${money(o.custos)}</strong></div><div class="kpi"><small>Garantia</small><strong>${money(o.garantia)}</strong></div><div class="kpi"><small>Custo real</small><strong>${money(o.compra+o.custos+o.garantia)}</strong></div><div class="kpi"><small>Venda</small><strong>${money(o.venda)}</strong></div><div class="kpi"><small>Lucro</small><strong class="${o.venda-o.compra-o.custos-o.garantia>=0?"green":"red"}">${money(o.venda-o.compra-o.custos-o.garantia)}</strong></div></div>
+ $("#app").innerHTML=`<h2>Histórico</h2>${db.ops.length?db.ops.slice().reverse().map(o=>`<div class="card"><div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.categoria||"Celular / Smartphone")} · ${esc(o.cond)} · ${o.data}</div></div><span class="pill">${status(o)}</span></div>
+ <div class="kpis"><div class="kpi"><small>Compra</small><strong>${money(o.compra)}</strong></div><div class="kpi"><small>Reparos/logística/venda</small><strong>${money(o.custos)}</strong></div><div class="kpi"><small>Garantia</small><strong>${money(o.garantia)}</strong></div><div class="kpi"><small>Custo real</small><strong>${money(realCost(o))}</strong></div><div class="kpi"><small>Venda real</small><strong>${isSold(o)?money(o.venda):"—"}</strong></div><div class="kpi"><small>Preço sugerido</small><strong>${money(suggested(o))}</strong></div><div class="kpi"><small>${isSold(o)?"Lucro":"Capital no estoque"}</small><strong class="${isSold(o)?(profit(o)>=0?"green":"red"):""}">${isSold(o)?money(profit(o)):money(realCost(o))}</strong></div></div>
  ${o.imei?`<p class="muted">IMEI: ${esc(o.imei)}</p>`:""}${o.obs?`<p class="muted">${esc(o.obs)}</p>`:""}${o.garobs?`<p class="muted">Garantia: ${esc(o.garobs)}</p>`:""}
- <button class="danger" onclick="del(${o.id})">Excluir operação</button></div>`).join(""):"<div class='card muted'>Nenhuma operação cadastrada.</div>"}`;
+ <div class="actions"><button onclick="edit(${o.id})">✏️ Editar</button>${!isSold(o)?`<button class="primary" onclick="sell(${o.id})">💰 Vender</button>`:""}<button class="danger" onclick="del(${o.id})">Excluir operação</button></div></div>`).join(""):"<div class='card muted'>Nenhuma operação cadastrada.</div>"}`;
 }
 function backup(){
  $("#app").innerHTML=`<h2>Backup e transferência</h2><div class="card"><h3>💾 Seus dados</h3><p class="muted">Os lançamentos ficam salvos neste navegador. Exporte um backup para levar tudo para outro aparelho ou instalação.</p><div class="actions"><button id="export">Exportar backup</button><button id="clear" class="danger">Apagar todos os dados</button></div></div>
@@ -125,9 +165,47 @@ function backup(){
  $("#clear").onclick=()=>{if(confirm("Apagar todas as operações?")){db={ops:[]};save();render()}};
  $("#file").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.ops||!Array.isArray(x.ops))throw 0;db=x;save();alert("Backup restaurado!");page="dashboard";render()}catch{alert("Arquivo de backup inválido.")}};r.readAsText(f)};
 }
+function edit(id){editId=id;page="novo";render()}
+function sell(id){
+ const o=db.ops.find(x=>x.id===id); if(!o)return;
+ const sugestao=suggested(o);
+ const hoje=new Date().toISOString().slice(0,10);
+ const modal=document.createElement("div"); modal.className="modal";
+ modal.innerHTML=`<div class="modalbox">
+ <div class="row"><h2>💰 Registrar venda</h2><button class="close" id="fecharVenda">✕</button></div>
+ <div class="note"><b>${esc(o.modelo)}</b><br>Custo real: <b>${money(realCost(o))}</b> · Preço sugerido: <b>${money(sugestao)}</b></div>
+ <div class="card"><div class="grid">
+ <label class="full">Valor REAL recebido na venda<input id="vendaReal" type="number" min="0" step=".01" value="${Number(o.venda||0)||""}" placeholder="Ex.: 750"></label>
+ <label>Data da venda<input id="dataVenda" type="date" value="${o.dataVendaISO||hoje}"></label>
+ <label>Forma de pagamento<select id="formaVenda"><option>Pix</option><option>Dinheiro</option><option>Cartão</option><option>Transferência</option><option>Outro</option></select></label>
+ <label>Taxa / maquininha<input id="taxaVenda" type="number" min="0" step=".01" value="${Number(o.taxa||0)}"></label>
+ <label>Outros custos da venda<input id="outVenda" type="number" min="0" step=".01" value="${Number(o.outvenda||0)}"></label>
+ </div></div>
+ <div class="card"><h3>Resultado</h3><div id="previewVenda" class="note"></div></div>
+ <div class="actions"><button class="primary" id="confirmarVenda">Confirmar venda</button><button id="cancelarVenda">Cancelar</button></div>
+ </div>`;
+ document.body.appendChild(modal);
+ const vendaEl=modal.querySelector("#vendaReal"),taxaEl=modal.querySelector("#taxaVenda"),outEl=modal.querySelector("#outVenda"),prev=modal.querySelector("#previewVenda");
+ function preview(){
+   const v=Number(vendaEl.value)||0, custosVenda=(Number(taxaEl.value)||0)+(Number(outEl.value)||0);
+   const lucro=v-realCost(o)-custosVenda, dif=v-sugestao;
+   prev.innerHTML=`Venda real: <b>${money(v)}</b> · Lucro líquido: <b class="${lucro>=0?"green":"red"}">${money(lucro)}</b><br>Diferença vs. sugerido: <b class="${dif>=0?"green":"red"}">${money(dif)}</b>`;
+ }
+ [vendaEl,taxaEl,outEl].forEach(e=>e.addEventListener("input",preview)); preview();
+ const close=()=>modal.remove();
+ modal.querySelector("#fecharVenda").onclick=close; modal.querySelector("#cancelarVenda").onclick=close;
+ modal.querySelector("#confirmarVenda").onclick=()=>{
+   const v=Number(vendaEl.value)||0;
+   if(v<=0){alert("Informe o valor REAL da venda.");return}
+   o.venda=v; o.taxa=Number(taxaEl.value)||0; o.outvenda=Number(outEl.value)||0;
+   o.dataVendaISO=modal.querySelector("#dataVenda").value; o.dataVenda=new Date(o.dataVendaISO+"T12:00:00").toLocaleDateString("pt-BR");
+   o.formaVenda=modal.querySelector("#formaVenda").value; o.ultimaEdicao=new Date().toLocaleDateString("pt-BR");
+   save(); close(); page="estoque"; render();
+ };
+}
 function del(id){if(confirm("Excluir esta operação?")){db.ops=db.ops.filter(o=>o.id!==id);save();historico()}}
-function render(){if(page==="novo")novo();if(page==="dashboard")dashboard();if(page==="historico")historico();if(page==="backup")backup();$$("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page))}
-$$("nav button").forEach(b=>b.onclick=()=>{page=b.dataset.page;render()});render();
+function render(){if(page==="novo")novo();if(page==="dashboard")dashboard();if(page==="estoque")estoque();if(page==="historico")historico();if(page==="backup")backup();$$("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page))}
+$$("nav button").forEach(b=>b.onclick=()=>{editId=null;page=b.dataset.page;render()});render();
 </script>
 <script>
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
