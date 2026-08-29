@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<title>Gestor de Revendas</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--text:#17181a;--muted:#73777d;--line:#e1e3e6;--dark:#111;--green:#087f3f;--red:#c62828;--blue:#1976d2;--orange:#b76500;--radius:18px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+header{background:#111;color:#fff;padding:22px 18px 18px;position:sticky;top:0;z-index:20}
+.brand{font-size:26px;font-weight:800}.subtitle{color:#aaa;margin-top:5px;font-size:14px}
+nav{display:flex;gap:8px;overflow:auto;padding:12px 10px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:92px;z-index:19}
+nav button{border:0;background:#eee;padding:12px 16px;border-radius:13px;font-weight:700;white-space:nowrap;color:#1870d0}nav button.active{background:#111;color:#fff}
+main{max-width:1100px;margin:auto;padding:18px}
+h1{font-size:30px;margin:8px 0 18px}h2{margin:4px 0 15px}h3{margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.card,.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:0 1px 2px #00000008}
+.kpi .label{color:var(--muted);font-size:14px}.kpi .value{font-size:25px;font-weight:800;margin-top:7px}.green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}.orange{color:var(--orange)}
+label{display:block;color:#5e6268;font-size:14px;font-weight:650;margin:10px 0 6px}input,select,textarea{width:100%;padding:13px;border:1px solid #cfd2d6;border-radius:12px;background:#fff;font:inherit}textarea{min-height:90px;resize:vertical}
+button{font:inherit;cursor:pointer}.primary,.secondary,.danger,.ghost{border:0;border-radius:12px;padding:13px 16px;font-weight:750}.primary{background:#111;color:#fff}.secondary{background:#eaf2ff;color:#1267c7}.danger{background:#ffeaea;color:#b51f1f}.ghost{background:#eee;color:#222}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.actions button{flex:1;min-width:130px}
+.notice{background:#eef5ff;border-radius:14px;padding:13px;margin-bottom:14px;color:#374b61}
+.item{border:1px solid var(--line);border-radius:16px;padding:15px;margin:10px 0;background:#fff}.itemtop{display:flex;justify-content:space-between;gap:12px}.itemtitle{font-size:18px;font-weight:800}.muted{color:var(--muted)}.small{font-size:13px}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#eee}.b-stock{background:#e8f7ef;color:#087f3f}.b-sold{background:#e8f0ff;color:#1768ba}.b-res{background:#fff3df;color:#a35b00}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px}th{color:var(--muted)}
+.hidden{display:none!important}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.modal{position:fixed;inset:0;background:#0008;z-index:50;display:flex;align-items:flex-end;justify-content:center}.modalbox{background:#fff;width:min(900px,100%);max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px}
+.modalhead{display:flex;justify-content:space-between;align-items:center}.x{border:0;background:#eee;border-radius:50%;width:38px;height:38px;font-size:22px}
+.empty{text-align:center;padding:30px;color:var(--muted)}.searchrow{display:flex;gap:8px;margin-bottom:12px}.searchrow input{flex:2}.searchrow select{flex:1}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.three,.two,.grid2{grid-template-columns:1fr}main{padding:12px}header{padding:18px}.modalbox{max-height:95vh}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">📦 Gestor de Revendas</div>
+  <div class="subtitle">Compra → custos → preço sugerido → estoque → venda real → giro → lucro</div>
+</header>
+<nav>
+  <button data-tab="new" class="active">＋ Nova operação</button>
+  <button data-tab="stock">📦 Estoque</button>
+  <button data-tab="dashboard">📊 Dashboard</button>
+  <button data-tab="history">📋 Histórico</button>
+  <button data-tab="backup">⚙️ Dados</button>
+</nav>
+
+<main>
+<section id="tab-new">
+  <h1>Nova operação</h1>
+  <div class="notice">Cadastre o produto uma única vez. Ao salvar, ele entra no <b>estoque</b>. A venda só acontece quando você clicar em <b>Vender</b> e informar o valor realmente recebido.</div>
+  <form id="form">
+    <div class="panel">
+      <h2>📱 Produto</h2>
+      <div class="two">
+        <div><label>Categoria</label><select id="category"><option>Celular</option><option>Videogame</option><option>Computador</option><option>Notebook</option><option>Tablet</option><option>Smartwatch</option><option>TV</option><option>Acessório</option><option>Outro</option></select></div>
+        <div><label>Modelo / produto</label><input id="model" required placeholder="Ex.: iPhone 13 128 GB"></div>
+      </div>
+      <div class="two">
+        <div><label>Condição</label><select id="condition"><option>Funcionando</option><option>Tela quebrada</option><option>Bateria ruim</option><option>Com defeito</option><option>Usado - bom estado</option><option>Novo</option><option>Outro</option></select></div>
+        <div><label>IMEI / nº de série / identificação</label><input id="identifier" placeholder="Opcional"></div>
+      </div>
+      <div class="two">
+        <div><label>Data da compra</label><input id="purchaseDate" type="date" required></div>
+        <div><label>Origem / fornecedor</label><input id="source" placeholder="Ex.: particular, Marketplace"></div>
+      </div>
+      <label>Observações</label><textarea id="notes" placeholder="Cor, estado, acessórios, defeitos, etc."></textarea>
+    </div>
+
+    <div class="panel">
+      <h2>💰 Compra e custos</h2>
+      <div class="three">
+        <div><label>Valor pago</label><input id="purchase" type="number" step="0.01" min="0" required></div>
+        <div><label>Reparo / peças</label><input id="repair" type="number" step="0.01" min="0" value="0"></div>
+        <div><label>Outros custos</label><input id="other" type="number" step="0.01" min="0" value="0"></div>
+      </div>
+      <div class="two">
+        <div><label>Custo de garantia / reserva</label><input id="warrantyCost" type="number" step="0.01" min="0" value="0"></div>
+        <div><label>Margem desejada (%)</label><input id="margin" type="number" step="0.1" min="0" value="25"></div>
+      </div>
+      <div class="notice" id="preview">Custo real: R$ 0,00 · Preço sugerido: R$ 0,00</div>
+      <div class="actions"><button class="primary" type="submit">📦 Adicionar ao estoque</button><button class="ghost" type="reset">Limpar</button></div>
+    </div>
+  </form>
+</section>
+
+<section id="tab-stock" class="hidden">
+  <h1>Estoque</h1>
+  <div class="grid">
+    <div class="card kpi"><div class="label">Itens disponíveis</div><div class="value" id="sQty">0</div></div>
+    <div class="card kpi"><div class="label">Custo investido</div><div class="value" id="sCost">R$ 0,00</div></div>
+    <div class="card kpi"><div class="label">Venda potencial</div><div class="value blue" id="sPotential">R$ 0,00</div></div>
+    <div class="card kpi"><div class="label">Lucro potencial</div><div class="value green" id="sProfit">R$ 0,00</div></div>
+  </div>
+  <div class="searchrow"><input id="stockSearch" placeholder="Buscar produto, categoria ou identificação..."><select id="stockFilter"><option value="all">Todos</option><option value="late">Mais de 30 dias</option><option value="late60">Mais de 60 dias</option><option value="late90">Mais de 90 dias</option></select></div>
+  <div id="stockList"></div>
+</section>
+
+<section id="tab-dashboard" class="hidden">
+  <h1>Dashboard</h1>
+  <div class="grid">
+    <div class="card kpi"><div class="label">Operações</div><div class="value" id="dOps">0</div></div>
+    <div class="card kpi"><div class="label">Faturamento</div><div class="value" id="dRevenue">R$ 0,00</div></div>
+    <div class="card kpi"><div class="label">Custo das vendas</div><div class="value" id="dCost">R$ 0,00</div></div>
+    <div class="card kpi"><div class="label">Lucro real</div><div class="value green" id="dProfit">R$ 0,00</div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2>📈 Giro e permanência</h2><div id="turnover"></div></div>
+    <div class="panel"><h2>🎯 Desempenho de venda</h2><div id="performance"></div></div>
+  </div>
+  <div class="panel"><h2>🏆 Melhores categorias</h2><div id="categories"></div></div>
+</section>
+
+<section id="tab-history" class="hidden">
+  <h1>Histórico</h1>
+  <div class="searchrow"><input id="historySearch" placeholder="Buscar..."><select id="historyFilter"><option value="all">Todos</option><option value="sold">Vendidos</option><option value="stock">Em estoque</option></select></div>
+  <div id="historyList"></div>
+</section>
+
+<section id="tab-backup" class="hidden">
+  <h1>Dados e segurança</h1>
+  <div class="panel">
+    <h2>💾 Seus dados</h2>
+    <p>Os lançamentos ficam salvos neste navegador usando <b>armazenamento local</b>. Para não depender de um único aparelho, use o backup abaixo.</p>
+    <div class="actions"><button class="secondary" id="exportJson">⬇️ Exportar backup completo</button><button class="secondary" id="exportCsv">📊 Exportar CSV</button><label class="secondary" style="text-align:center;cursor:pointer">⬆️ Restaurar backup <input id="importJson" type="file" accept=".json" hidden></label></div>
+  </div>
+  <div class="panel">
+    <h2>🧹 Manutenção</h2>
+    <p class="muted">Apagar todos os dados é irreversível. Faça um backup antes.</p>
+    <button class="danger" id="clearAll">Apagar todos os lançamentos</button>
+  </div>
+</section>
+</main>
+
+<div id="modal" class="modal hidden">
+  <div class="modalbox">
+    <div class="modalhead"><h2 id="modalTitle">Editar</h2><button class="x" onclick="closeModal()">×</button></div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const KEY='gestor_revendas_v3';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"items":[]}');
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+const dateBR=s=>s?new Date(s+'T12:00:00').toLocaleDateString('pt-BR'):'—';
+const daysBetween=(a,b=new Date())=>Math.max(0,Math.floor((b-new Date(a+'T12:00:00'))/86400000));
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const costOf=x=>Number(x.purchase||0)+Number(x.repair||0)+Number(x.other||0)+Number(x.warrantyCost||0);
+const suggested=x=>{let c=costOf(x),m=Number(x.margin||0)/100; return m>=1?c:c/(1-m)};
+const profit=x=>Number(x.sale||0)-costOf(x);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+function updatePreview(){
+ const x={purchase:$('purchase').value,repair:$('repair').value,other:$('other').value,warrantyCost:$('warrantyCost').value,margin:$('margin').value};
+ $('preview').innerHTML=`Custo real: <b>${money(costOf(x))}</b> · Preço sugerido: <b>${money(suggested(x))}</b>`;
+}
+['purchase','repair','other','warrantyCost','margin'].forEach(id=>$(id).addEventListener('input',updatePreview));
+$('purchaseDate').value=new Date().toISOString().slice(0,10);
+
+$('form').addEventListener('submit',e=>{
+ e.preventDefault();
+ const x={id:uid(),category:$('category').value,model:$('model').value.trim(),condition:$('condition').value,identifier:$('identifier').value.trim(),purchaseDate:$('purchaseDate').value,source:$('source').value.trim(),notes:$('notes').value.trim(),purchase:+$('purchase').value||0,repair:+$('repair').value||0,other:+$('other').value||0,warrantyCost:+$('warrantyCost').value||0,margin:+$('margin').value||0,sale:0,saleDate:'',status:'stock',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+ db.items.unshift(x);save();e.target.reset();$('purchaseDate').value=new Date().toISOString().slice(0,10);$('margin').value=25;updatePreview();openTab('stock');renderAll();
+});
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
+function openTab(t){document.querySelectorAll('main>section').forEach(s=>s.classList.add('hidden'));$('tab-'+t).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));renderAll()}
+
+function age(x){return x.status==='sold'&&x.saleDate?daysBetween(x.purchaseDate,new Date(x.saleDate+'T12:00:00')):daysBetween(x.purchaseDate)}
+function itemCard(x,stock=false){
+ const c=costOf(x), sug=suggested(x), p=profit(x), a=age(x);
+ return `<div class="item">
+ <div class="itemtop"><div><div class="itemtitle">${esc(x.model)}</div><div class="muted">${esc(x.category)} · ${esc(x.condition)} ${x.identifier?'· '+esc(x.identifier):''}</div></div>
+ <span class="badge ${x.status==='stock'?'b-stock':x.status==='reserved'?'b-res':'b-sold'}">${x.status==='stock'?'ESTOQUE':x.status==='reserved'?'RESERVADO':'VENDIDO'}</span></div>
+ <div class="small muted" style="margin-top:8px">Compra: ${dateBR(x.purchaseDate)} ${x.status==='sold'?'· Venda: '+dateBR(x.saleDate):'· Permanência: '+a+' dias'}</div>
+ <div class="small" style="margin-top:8px">Custo real: <b>${money(c)}</b> · Sugerido: <b>${money(sug)}</b> ${x.status==='sold'?'· Venda real: <b>'+money(x.sale)+'</b> · Lucro: <b class="'+(p>=0?'green':'red')+'">'+money(p)+'</b>':''}</div>
+ ${x.status==='stock'?`<div class="actions"><button class="primary" onclick="sell('${x.id}')">💰 Vender</button><button class="secondary" onclick="edit('${x.id}')">✏️ Editar</button><button class="ghost" onclick="reserve('${x.id}')">${x.status==='reserved'?'Desreservar':'Reservar'}</button></div>`:`<div class="actions"><button class="secondary" onclick="edit('${x.id}')">✏️ Editar</button></div>`}
+ </div>`;
+}
+function renderStock(){
+ const all=db.items.filter(x=>x.status!=='sold');
+ const q=($('stockSearch').value||'').toLowerCase(), f=$('stockFilter').value;
+ let list=all.filter(x=>(x.model+' '+x.category+' '+x.identifier).toLowerCase().includes(q));
+ if(f==='late')list=list.filter(x=>age(x)>30);if(f==='late60')list=list.filter(x=>age(x)>60);if(f==='late90')list=list.filter(x=>age(x)>90);
+ $('sQty').textContent=all.length;$('sCost').textContent=money(all.reduce((a,x)=>a+costOf(x),0));$('sPotential').textContent=money(all.reduce((a,x)=>a+suggested(x),0));$('sProfit').textContent=money(all.reduce((a,x)=>a+suggested(x)-costOf(x),0));
+ $('stockList').innerHTML=list.length?list.map(x=>itemCard(x,true)).join(''):'<div class="empty">📦 Nenhum item no estoque.</div>';
+}
+function renderDashboard(){
+ const sold=db.items.filter(x=>x.status==='sold'), stock=db.items.filter(x=>x.status!=='sold');
+ const revenue=sold.reduce((a,x)=>a+Number(x.sale||0),0), cost=sold.reduce((a,x)=>a+costOf(x),0), pr=revenue-cost;
+ $('dOps').textContent=db.items.length;$('dRevenue').textContent=money(revenue);$('dCost').textContent=money(cost);$('dProfit').textContent=money(pr);
+ const avgSold=sold.length?sold.reduce((a,x)=>a+age(x),0)/sold.length:0, avgStock=stock.length?stock.reduce((a,x)=>a+age(x),0)/stock.length:0;
+ const turnoverRate=sold.length? (sold.length/(sold.length+stock.length))*100:0;
+ $('turnover').innerHTML=`<p>Tempo médio até a venda: <b>${avgSold.toFixed(1)} dias</b></p><p>Permanência média atual: <b>${avgStock.toFixed(1)} dias</b></p><p>Índice simples de giro do cadastro: <b>${turnoverRate.toFixed(1)}%</b></p><p>Estoque acima de 30 dias: <b>${stock.filter(x=>age(x)>30).length}</b></p><p>Estoque acima de 60 dias: <b>${stock.filter(x=>age(x)>60).length}</b></p><p>Estoque acima de 90 dias: <b>${stock.filter(x=>age(x)>90).length}</b></p>`;
+ const compared=sold.filter(x=>suggested(x)>0), avgDiff=compared.length?compared.reduce((a,x)=>a+(Number(x.sale)-suggested(x)),0)/compared.length:0, margin=revenue?pr/revenue*100:0;
+ $('performance').innerHTML=`<p>Margem real média: <b>${margin.toFixed(1)}%</b></p><p>Diferença média vs. preço sugerido: <b class="${avgDiff>=0?'green':'red'}">${money(avgDiff)}</b></p><p>Vendas com lucro: <b>${sold.filter(x=>profit(x)>0).length}</b></p><p>Vendas com prejuízo: <b>${sold.filter(x=>profit(x)<0).length}</b></p>`;
+ const cats={};db.items.forEach(x=>{cats[x.category]??={n:0,p:0};cats[x.category].n++;if(x.status==='sold')cats[x.category].p+=profit(x)});
+ $('categories').innerHTML=Object.entries(cats).sort((a,b)=>b[1].p-a[1].p).map(([k,v])=>`<div class="item"><b>${esc(k)}</b> · ${v.n} operação(ões) · lucro realizado <b class="${v.p>=0?'green':'red'}">${money(v.p)}</b></div>`).join('')||'<div class="empty">Sem dados.</div>';
+}
+function renderHistory(){
+ const q=($('historySearch').value||'').toLowerCase(),f=$('historyFilter').value;
+ let list=db.items.filter(x=>(x.model+' '+x.category+' '+x.identifier).toLowerCase().includes(q));
+ if(f==='sold')list=list.filter(x=>x.status==='sold');if(f==='stock')list=list.filter(x=>x.status!=='sold');
+ $('historyList').innerHTML=list.length?list.map(x=>itemCard(x)).join(''):'<div class="empty">Nenhum lançamento.</div>';
+}
+function renderAll(){renderStock();renderDashboard();renderHistory()}
+$('stockSearch').oninput=renderStock;$('stockFilter').onchange=renderStock;$('historySearch').oninput=renderHistory;$('historyFilter').onchange=renderHistory;
+
+function sell(id){
+ const x=db.items.find(i=>i.id===id);if(!x)return;
+ $('modalTitle').textContent='💰 Registrar venda';
+ $('modalContent').innerHTML=`<div class="notice"><b>${esc(x.model)}</b><br>Custo real: ${money(costOf(x))} · Preço sugerido: ${money(suggested(x))}<br>Compra: ${dateBR(x.purchaseDate)}</div>
+ <label>Data da venda</label><input id="mSaleDate" type="date" value="${new Date().toISOString().slice(0,10)}">
+ <label>Valor REAL recebido na venda</label><input id="mSale" type="number" step="0.01" min="0" placeholder="Ex.: 700">
+ <label>Canal da venda</label><select id="mChannel"><option>Particular</option><option>Marketplace</option><option>WhatsApp</option><option>Loja</option><option>Outro</option></select>
+ <div id="saleCalc" class="notice" style="margin-top:12px">Informe o valor para calcular.</div>
+ <div class="actions"><button class="primary" onclick="confirmSale('${id}')">Confirmar venda</button><button class="ghost" onclick="closeModal()">Cancelar</button></div>`;
+ $('mSale').oninput=()=>{let v=+$('mSale').value||0,p=v-costOf(x);$('saleCalc').innerHTML=`Venda real: <b>${money(v)}</b> · Lucro: <b class="${p>=0?'green':'red'}">${money(p)}</b> · Margem: <b>${v?(p/v*100).toFixed(1):'0.0'}%</b>`};
+ $('modal').classList.remove('hidden');
+}
+function confirmSale(id){
+ const x=db.items.find(i=>i.id===id),v=+$('mSale').value||0;if(!v)return alert('Informe o valor real da venda.');
+ x.sale=v;x.saleDate=$('mSaleDate').value;x.channel=$('mChannel').value;x.status='sold';x.updatedAt=new Date().toISOString();save();closeModal();renderAll();
+}
+function reserve(id){let x=db.items.find(i=>i.id===id);x.status=x.status==='reserved'?'stock':'reserved';save();renderAll()}
+function edit(id){
+ const x=db.items.find(i=>i.id===id);if(!x)return;
+ $('modalTitle').textContent='✏️ Editar operação';
+ $('modalContent').innerHTML=`<div class="two"><div><label>Categoria</label><input id="eCategory" value="${esc(x.category)}"></div><div><label>Modelo / produto</label><input id="eModel" value="${esc(x.model)}"></div></div>
+ <div class="two"><div><label>Condição</label><input id="eCondition" value="${esc(x.condition)}"></div><div><label>Identificação</label><input id="eIdentifier" value="${esc(x.identifier)}"></div></div>
+ <div class="two"><div><label>Data da compra</label><input id="ePurchaseDate" type="date" value="${x.purchaseDate}"></div><div><label>Data da venda</label><input id="eSaleDate" type="date" value="${x.saleDate||''}"></div></div>
+ <div class="three"><div><label>Compra</label><input id="ePurchase" type="number" step=".01" value="${x.purchase}"></div><div><label>Reparo / peças</label><input id="eRepair" type="number" step=".01" value="${x.repair}"></div><div><label>Outros custos</label><input id="eOther" type="number" step=".01" value="${x.other}"></div></div>
+ <div class="three"><div><label>Garantia / reserva</label><input id="eWarranty" type="number" step=".01" value="${x.warrantyCost}"></div><div><label>Margem desejada (%)</label><input id="eMargin" type="number" step=".1" value="${x.margin}"></div><div><label>Venda REAL</label><input id="eSale" type="number" step=".01" value="${x.sale||0}"></div></div>
+ <label>Origem / fornecedor</label><input id="eSource" value="${esc(x.source)}"><label>Observações</label><textarea id="eNotes">${esc(x.notes)}</textarea>
+ <div class="actions"><button class="primary" onclick="saveEdit('${id}')">Salvar alterações</button><button class="danger" onclick="deleteItem('${id}')">Excluir operação</button></div>`;
+ $('modal').classList.remove('hidden');
+}
+function saveEdit(id){
+ const x=db.items.find(i=>i.id===id);Object.assign(x,{category:$('eCategory').value,model:$('eModel').value,condition:$('eCondition').value,identifier:$('eIdentifier').value,purchaseDate:$('ePurchaseDate').value,saleDate:$('eSaleDate').value,purchase:+$('ePurchase').value||0,repair:+$('eRepair').value||0,other:+$('eOther').value||0,warrantyCost:+$('eWarranty').value||0,margin:+$('eMargin').value||0,sale:+$('eSale').value||0,source:$('eSource').value,notes:$('eNotes').value,updatedAt:new Date().toISOString()});
+ if(x.sale>0 && x.saleDate)x.status='sold';else if(x.status==='sold')x.status='stock';save();closeModal();renderAll();
+}
+function deleteItem(id){if(confirm('Excluir esta operação?')){db.items=db.items.filter(x=>x.id!==id);save();closeModal();renderAll()}}
+function closeModal(){$('modal').classList.add('hidden')}
+window.closeModal=closeModal;window.sell=sell;window.confirmSale=confirmSale;window.edit=edit;window.saveEdit=saveEdit;window.deleteItem=deleteItem;window.reserve=reserve;
+
+$('exportJson').onclick=()=>download('gestor-revendas-backup.json',JSON.stringify(db,null,2),'application/json');
+$('exportCsv').onclick=()=>{let h=['ID','Categoria','Produto','Condição','Identificação','Compra','Data compra','Reparo','Outros custos','Garantia','Custo real','Margem desejada','Preço sugerido','Venda real','Data venda','Permanência dias','Status','Canal','Origem','Observações'];let rows=db.items.map(x=>[x.id,x.category,x.model,x.condition,x.identifier,x.purchase,x.purchaseDate,x.repair,x.other,x.warrantyCost,costOf(x),x.margin,suggested(x),x.sale,x.saleDate,age(x),x.status,x.channel||'',x.source,x.notes]);let csv=[h,...rows].map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\\n');download('gestor-revendas.csv','\\ufeff'+csv,'text/csv;charset=utf-8')};
+function download(name,data,type){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+$('importJson').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.items))throw 0;db=d;save();renderAll();alert('Backup restaurado com sucesso.')}catch(_){alert('Arquivo de backup inválido.')}};r.readAsText(f)};
+$('clearAll').onclick=()=>{if(confirm('ATENÇÃO: apagar todos os lançamentos?')){db={items:[]};save();renderAll()}};
+renderAll();updatePreview();
+</script>
+</body>
+</html>
