@@ -3,214 +3,254 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-title" content="Gestor de Revendas">
-<meta name="theme-color" content="#111827">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Gestor de Revendas v5</title>
+<meta name="theme-color" content="#111111">
+<title>Gestor de Revendas</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f7;color:#171717}
-header{background:#111;color:#fff;padding:18px 16px 16px;position:sticky;top:0;z-index:5}
-h1{font-size:22px;margin:0 0 4px}.sub{font-size:13px;color:#aaa}
-nav{display:flex;gap:8px;overflow:auto;padding:10px 12px;background:#fff;border-bottom:1px solid #ddd}
-button{border:0;border-radius:11px;padding:12px 15px;font-weight:700;font-size:14px;min-height:44px}nav button{background:#eee;white-space:nowrap}nav button.active{background:#111;color:#fff}
-main{max-width:760px;margin:auto;padding:14px}.card{background:#fff;border:1px solid #ddd;border-radius:16px;padding:16px;margin-bottom:12px}
-h2{font-size:19px;margin:0 0 12px}h3{font-size:15px;margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-label{font-size:12px;color:#666;display:block}input,select,textarea{display:block;width:100%;margin-top:5px;border:1px solid #ccc;border-radius:10px;padding:12px;font-size:16px;background:#fff;color:#111}
-.full{grid-column:1/-1}.primary{background:#111;color:#fff;width:100%}.danger{color:#c00;background:#fee}.muted{color:#777;font-size:13px}.money{font-variant-numeric:tabular-nums}.green{color:#087a35}.red{color:#c00}
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px}.kpi{background:#f7f7f7;border-radius:12px;padding:12px}.kpi small{display:block;color:#777}.kpi strong{font-size:18px;display:block;margin-top:4px}
-.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eee}.row:last-child{border-bottom:0}.pill{font-size:11px;background:#eee;border-radius:20px;padding:5px 8px;white-space:nowrap}
-.hidden{display:none}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1}.note{background:#f0f6ff;border-radius:12px;padding:12px;font-size:13px}.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50}.modalbox{background:#fff;width:min(760px,100%);border-radius:20px 20px 0 0;padding:18px;max-height:90vh;overflow:auto}.modalbox h2{margin-top:0}.close{background:#eee}
-@media(max-width:480px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.kpis{grid-template-columns:1fr 1fr}}
+:root{--bg:#f4f5f7;--card:#fff;--text:#17181a;--muted:#73777d;--line:#e1e3e6;--dark:#111;--green:#087f3f;--red:#c62828;--blue:#1976d2;--orange:#b76500;--radius:18px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+header{background:#111;color:#fff;padding:22px 18px 18px;position:sticky;top:0;z-index:20}
+.brand{font-size:26px;font-weight:800}.subtitle{color:#aaa;margin-top:5px;font-size:14px}
+nav{display:flex;gap:8px;overflow:auto;padding:12px 10px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:92px;z-index:19}
+nav button{border:0;background:#eee;padding:12px 16px;border-radius:13px;font-weight:700;white-space:nowrap;color:#1870d0}nav button.active{background:#111;color:#fff}
+main{max-width:1100px;margin:auto;padding:18px}
+h1{font-size:30px;margin:8px 0 18px}h2{margin:4px 0 15px}h3{margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.card,.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:0 1px 2px #00000008}
+.kpi .label{color:var(--muted);font-size:14px}.kpi .value{font-size:25px;font-weight:800;margin-top:7px}.green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}.orange{color:var(--orange)}
+label{display:block;color:#5e6268;font-size:14px;font-weight:650;margin:10px 0 6px}input,select,textarea{width:100%;padding:13px;border:1px solid #cfd2d6;border-radius:12px;background:#fff;font:inherit}textarea{min-height:90px;resize:vertical}
+button{font:inherit;cursor:pointer}.primary,.secondary,.danger,.ghost{border:0;border-radius:12px;padding:13px 16px;font-weight:750}.primary{background:#111;color:#fff}.secondary{background:#eaf2ff;color:#1267c7}.danger{background:#ffeaea;color:#b51f1f}.ghost{background:#eee;color:#222}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.actions button{flex:1;min-width:130px}
+.notice{background:#eef5ff;border-radius:14px;padding:13px;margin-bottom:14px;color:#374b61}
+.item{border:1px solid var(--line);border-radius:16px;padding:15px;margin:10px 0;background:#fff}.itemtop{display:flex;justify-content:space-between;gap:12px}.itemtitle{font-size:18px;font-weight:800}.muted{color:var(--muted)}.small{font-size:13px}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#eee}.b-stock{background:#e8f7ef;color:#087f3f}.b-sold{background:#e8f0ff;color:#1768ba}.b-res{background:#fff3df;color:#a35b00}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px}th{color:var(--muted)}
+.hidden{display:none!important}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.modal{position:fixed;inset:0;background:#0008;z-index:50;display:flex;align-items:flex-end;justify-content:center}.modalbox{background:#fff;width:min(900px,100%);max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px}
+.modalhead{display:flex;justify-content:space-between;align-items:center}.x{border:0;background:#eee;border-radius:50%;width:38px;height:38px;font-size:22px}
+.empty{text-align:center;padding:30px;color:var(--muted)}.searchrow{display:flex;gap:8px;margin-bottom:12px}.searchrow input{flex:2}.searchrow select{flex:1}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.three,.two,.grid2{grid-template-columns:1fr}main{padding:12px}header{padding:18px}.modalbox{max-height:95vh}}
 </style>
 </head>
 <body>
-<header><h1>📦 Gestor de Revendas</h1><div style="font-size:11px;color:#8f8;margin-top:5px">v5 • Estoque + Venda Real + Histórico</div><div class="sub">Compra → custos → preço sugerido → venda real → garantia → lucro real</div></header>
+<header>
+  <div class="brand">📦 Gestor de Revendas</div>
+  <div class="subtitle">Compra → custos → preço sugerido → estoque → venda real → giro → lucro</div>
+</header>
 <nav>
-<button data-page="novo" class="active">+ Nova operação</button>
-<button data-page="dashboard">📊 Dashboard</button>
-<button data-page="estoque">📦 Estoque</button>
-<button data-page="historico">📋 Histórico</button>
-<button data-page="backup">⚙️ Backup</button>
+  <button data-tab="new" class="active">＋ Nova operação</button>
+  <button data-tab="stock">📦 Estoque</button>
+  <button data-tab="dashboard">📊 Dashboard</button>
+  <button data-tab="history">📋 Histórico</button>
+  <button data-tab="backup">⚙️ Dados</button>
 </nav>
-<main id="app"></main>
-<script>
-const KEY="gestor_revendas_v1";
-let db=JSON.parse(localStorage.getItem(KEY)||'{"ops":[]}');
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(v)||0);
-const n=id=>Number($("#"+id)?.value)||0;
-const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-let page="novo", editId=null;
 
-function costs(){
- return n("tela")+n("bateria")+n("pecas")+n("mao")+n("acessorios")+
- n("gasbusca")+n("gasentrega")+n("frete")+n("deslocamento")+
- n("taxa")+n("outvenda")+n("outroscustos");
-}
-function calc(){
- if(!$("#compra"))return;
- let c=n("compra"),x=costs(),g=n("garantia"),v=n("venda"),total=c+x+g,l=v-total,m=v?l/v*100:0;
- let md=n("margemDesejada")||20, sugestao=total/(1-md/100); if(!isFinite(sugestao)||sugestao<0)sugestao=0;
- $("#precoSugerido").value=sugestao.toFixed(2);
- if($("#comparativoVenda")) $("#comparativoVenda").innerHTML=`Preço sugerido: <b>${money(sugestao)}</b> · Venda real: <b>${v?money(v):"—"}</b>${v?` · Diferença: <b class="${v>=sugestao?"green":"red"}">${money(v-sugestao)}</b>`:""}`;
- $("#rcompra").textContent=money(c);$("#rextras").textContent=money(x);
- $("#rgar").textContent=money(g);$("#rtotal").textContent=money(total);
- $("#rlucro").textContent=money(l);$("#rlucro").className="money "+(l>=0?"green":"red");
- $("#rmargem").textContent=m.toFixed(1)+"%";
-}
-function novo(){
- const o=editId?db.ops.find(x=>x.id===editId):null;
- const legacyExtra=(o && !o.detalhesCustos)?Number(o.custos||0):0;
- const val=(k,d="")=>o?.[k]??d;
- $("#app").innerHTML=`<h2>${o?"✏️ Editar operação":"Nova operação"}</h2>
- <div class="note">${o?"Altere qualquer informação e salve. O lançamento original será atualizado.":"Cadastre cada aparelho separadamente. O sistema considera todos os custos para chegar ao <b>custo real</b>."}</div>
- <form id="form">
- <div class="card"><h3>📱 Aparelho</h3><div class="grid">
- <label>Produto<input id="modelo" required placeholder="iPhone 13 128GB" value="${esc(val("modelo"))}"></label>
- <label>Categoria<select id="categoria">${["Celular / Smartphone","Videogame","Computador / Notebook","Tablet","Console / Acessórios","Eletrônicos","Outros"].map(x=>`<option ${val("categoria","Celular / Smartphone")==x?"selected":""}>${x}</option>`).join("")}</select></label>
- <label>Condição<select id="cond">${["Tela quebrada","Bateria ruim","Outro defeito","Funcionando"].map(x=>`<option ${val("cond")==x?"selected":""}>${x}</option>`).join("")}</select></label>
- <label class="full">IMEI / identificação<input id="imei" placeholder="Opcional" value="${esc(val("imei"))}"></label>
- <label class="full">Observações<textarea id="obs" rows="2" placeholder="Cor, estado, detalhes...">${esc(val("obs"))}</textarea></label></div></div>
- <div class="card"><h3>💰 Compra</h3><label>Valor pago no aparelho<input id="compra" type="number" min="0" step=".01" required value="${val("compra",0)}"></label></div>
- <div class="card"><h3>🔧 Reparo e preparação</h3><div class="grid">
- <label>Tela<input class="cost" id="tela" type="number" min="0" step=".01" value="${val("tela",0)}"></label>
- <label>Bateria<input class="cost" id="bateria" type="number" min="0" step=".01" value="${val("bateria",0)}"></label>
- <label>Outras peças<input class="cost" id="pecas" type="number" min="0" step=".01" value="${val("pecas",0)}"></label>
- <label>Mão de obra<input class="cost" id="mao" type="number" min="0" step=".01" value="${val("mao",0)}"></label>
- <label>Acessórios / película<input class="cost" id="acessorios" type="number" min="0" step=".01" value="${val("acessorios",0)}"></label>
- <label>Outros custos<input class="cost" id="outroscustos" type="number" min="0" step=".01" value="${val("outroscustos",legacyExtra)}"></label></div></div>
- <div class="card"><h3>🚗 Logística</h3><div class="grid">
- <label>Gasolina para buscar<input class="cost" id="gasbusca" type="number" min="0" step=".01" value="${val("gasbusca",0)}"></label>
- <label>Gasolina para entregar<input class="cost" id="gasentrega" type="number" min="0" step=".01" value="${val("gasentrega",0)}"></label>
- <label>Frete / transporte<input class="cost" id="frete" type="number" min="0" step=".01" value="${val("frete",0)}"></label>
- <label>Outros deslocamentos<input class="cost" id="deslocamento" type="number" min="0" step=".01" value="${val("deslocamento",0)}"></label></div></div>
- <div class="card"><h3>💳 Venda</h3><div class="grid">
- <label>Margem desejada (%)<input id="margemDesejada" type="number" min="0" max="99" step=".1" value="${val("margemDesejada",20)}"></label>
- <label>Preço sugerido<input id="precoSugerido" type="number" step=".01" readonly value="${val("precoSugerido",0)}"></label>
- <label>Valor REAL da venda<input id="venda" type="number" min="0" step=".01" value="${val("venda",0)}"></label>
- <label>Taxa / maquininha<input class="cost" id="taxa" type="number" min="0" step=".01" value="${val("taxa",0)}"></label>
- <label>Outros custos da venda<input class="cost" id="outvenda" type="number" min="0" step=".01" value="${val("outvenda",0)}"></label></div>
- <p class="muted">O preço sugerido usa o custo real e a margem desejada. No estoque, deixe a venda em R$ 0,00. Quando vender, informe o <b>valor REAL recebido</b> para comparar com a sugestão.</p><div class="note" id="comparativoVenda">Preço sugerido: R$ 0,00 · Venda real: R$ 0,00</div></div>
- <div class="card"><h3>🛡️ Garantia</h3><div class="grid">
- <label>Custo da garantia<input id="garantia" type="number" min="0" step=".01" value="${val("garantia",0)}"></label>
- <label>Descrição<input id="garobs" placeholder="Problema / peça / troca" value="${esc(val("garobs"))}"></label></div></div>
- <div class="card"><h3>📊 Resultado</h3><div class="kpis">
- <div class="kpi"><small>Compra</small><strong id="rcompra">R$ 0,00</strong></div>
- <div class="kpi"><small>Custos extras</small><strong id="rextras">R$ 0,00</strong></div>
- <div class="kpi"><small>Garantia</small><strong id="rgar">R$ 0,00</strong></div>
- <div class="kpi"><small>Custo real</small><strong id="rtotal">R$ 0,00</strong></div>
- <div class="kpi"><small>Lucro líquido</small><strong id="rlucro">R$ 0,00</strong></div>
- <div class="kpi"><small>Margem</small><strong id="rmargem">0,0%</strong></div></div></div>
- <div class="actions"><button class="primary">${o?"Salvar alterações":"Salvar operação"}</button>${o?'<button type="button" id="cancelar">Cancelar</button>':""}</div>
- </form>`;
- $$("#form input, #form select, #form textarea").forEach(x=>x.addEventListener("input",calc));
- $("#form").addEventListener("submit",e=>{e.preventDefault();
-  const data={modelo:$("#modelo").value.trim(),categoria:$("#categoria").value,cond:$("#cond").value,imei:$("#imei").value.trim(),obs:$("#obs").value.trim(),
-  compra:n("compra"),custos:costs(),margemDesejada:n("margemDesejada"),precoSugerido:n("precoSugerido"),garantia:n("garantia"),garobs:$("#garobs").value.trim(),venda:n("venda"),
-  tela:n("tela"),bateria:n("bateria"),pecas:n("pecas"),mao:n("mao"),acessorios:n("acessorios"),
-  gasbusca:n("gasbusca"),gasentrega:n("gasentrega"),frete:n("frete"),deslocamento:n("deslocamento"),taxa:n("taxa"),outvenda:n("outvenda"),outroscustos:n("outroscustos"),detalhesCustos:true};
-  if(editId){const i=db.ops.findIndex(x=>x.id===editId); if(i>=0) db.ops[i]={...db.ops[i],...data,ultimaEdicao:new Date().toLocaleDateString("pt-BR")};}
-  else db.ops.push({id:Date.now(),...data,data:new Date().toLocaleDateString("pt-BR")});
-  save();editId=null;page="historico";render();
- });
- $("#cancelar")?.addEventListener("click",()=>{editId=null;page="historico";render()});
- calc();
-}
-function isSold(o){return Number(o.venda)>0}
-function suggested(o){let c=realCost(o),m=Number(o.margemDesejada||20);return c/(1-m/100)}
-function realCost(o){return Number(o.compra||0)+Number(o.custos||0)+Number(o.garantia||0)}
-function profit(o){return Number(o.venda||0)-realCost(o)}
-function status(o){return isSold(o)?"Vendido":"Em estoque"}
-function dashboard(){
- let a=db.ops,sold=a.filter(isSold),stock=a.filter(o=>!isSold(o));
- let fat=sold.reduce((s,o)=>s+o.venda,0), custo=sold.reduce((s,o)=>s+realCost(o),0), lucro=fat-custo;
- let estoque=stock.reduce((s,o)=>s+realCost(o),0);
- let sugeridoVendido=sold.reduce((s,o)=>s+suggested(o),0), difSug=sold.reduce((s,o)=>s+(Number(o.venda||0)-suggested(o)),0);
- $("#app").innerHTML=`<h2>Dashboard</h2><div class="kpis">
- <div class="kpi"><small>Operações</small><strong>${a.length}</strong></div>
- <div class="kpi"><small>Vendas</small><strong>${sold.length}</strong></div>
- <div class="kpi"><small>Faturamento</small><strong>${money(fat)}</strong></div>
- <div class="kpi"><small>Lucro líquido</small><strong class="${lucro>=0?"green":"red"}">${money(lucro)}</strong></div>
- <div class="kpi"><small>Estoque</small><strong>${stock.length} aparelhos</strong></div>
- <div class="kpi"><small>Capital no estoque</small><strong>${money(estoque)}</strong></div><div class="kpi"><small>Venda real × sugerida</small><strong class="${difSug>=0?"green":"red"}">${money(difSug)}</strong></div></div>
- <div class="card" style="margin-top:12px"><h3>Últimas operações</h3>${a.length?a.slice().reverse().slice(0,8).map(card).join(""):"<div class='muted'>Nenhuma operação cadastrada.</div>"}</div>`;
-}
-function card(o){
- let l=profit(o),t=realCost(o);
- return `<div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.categoria||"Celular / Smartphone")} · ${esc(o.cond)} · ${o.data}</div><div class="muted">Custo real: ${money(t)} · ${isSold(o)?"Venda: "+money(o.venda):"Ainda não vendido"}</div></div><b class="${isSold(o)?(l>=0?"green":"red"):""}">${isSold(o)?money(l):"ESTOQUE"}</b></div>`;
-}
-function estoque(){
- let a=db.ops.filter(o=>!isSold(o)),capital=a.reduce((s,o)=>s+realCost(o),0);
- $("#app").innerHTML=`<h2>📦 Estoque</h2>
- <div class="kpis"><div class="kpi"><small>Aparelhos não vendidos</small><strong>${a.length}</strong></div><div class="kpi"><small>Capital investido</small><strong>${money(capital)}</strong></div></div>
- <div class="card" style="margin-top:12px"><h3>Em estoque</h3>${a.length?a.slice().reverse().map(o=>stockCard(o)).join(""):"<div class='muted'>Nenhum aparelho no estoque. 🎉</div>"}</div>`;
-}
-function stockCard(o){
- return `<div class="card" style="background:#fafafa"><div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.categoria||"Celular / Smartphone")} · ${esc(o.cond)} · Entrada: ${o.data}</div>${o.imei?`<div class="muted">IMEI: ${esc(o.imei)}</div>`:""}</div><span class="pill">ESTOQUE</span></div>
- <div class="kpis"><div class="kpi"><small>Compra</small><strong>${money(o.compra)}</strong></div><div class="kpi"><small>Custos extras</small><strong>${money(o.custos)}</strong></div><div class="kpi"><small>Custo real</small><strong>${money(realCost(o))}</strong></div><div class="kpi"><small>Preço sugerido</small><strong>${money(suggested(o))}</strong></div></div>
- <div class="actions"><button onclick="edit(${o.id})">✏️ Editar</button><button class="primary" onclick="sell(${o.id})">💰 Vender</button></div></div>`;
-}
-function historico(){
- $("#app").innerHTML=`<h2>Histórico</h2>${db.ops.length?db.ops.slice().reverse().map(o=>`<div class="card"><div class="row"><div><b>${esc(o.modelo)}</b><div class="muted">${esc(o.categoria||"Celular / Smartphone")} · ${esc(o.cond)} · ${o.data}</div></div><span class="pill">${status(o)}</span></div>
- <div class="kpis"><div class="kpi"><small>Compra</small><strong>${money(o.compra)}</strong></div><div class="kpi"><small>Reparos/logística/venda</small><strong>${money(o.custos)}</strong></div><div class="kpi"><small>Garantia</small><strong>${money(o.garantia)}</strong></div><div class="kpi"><small>Custo real</small><strong>${money(realCost(o))}</strong></div><div class="kpi"><small>Venda real</small><strong>${isSold(o)?money(o.venda):"—"}</strong></div><div class="kpi"><small>Preço sugerido</small><strong>${money(suggested(o))}</strong></div><div class="kpi"><small>${isSold(o)?"Lucro":"Capital no estoque"}</small><strong class="${isSold(o)?(profit(o)>=0?"green":"red"):""}">${isSold(o)?money(profit(o)):money(realCost(o))}</strong></div></div>
- ${o.imei?`<p class="muted">IMEI: ${esc(o.imei)}</p>`:""}${o.obs?`<p class="muted">${esc(o.obs)}</p>`:""}${o.garobs?`<p class="muted">Garantia: ${esc(o.garobs)}</p>`:""}
- <div class="actions"><button onclick="edit(${o.id})">✏️ Editar</button>${!isSold(o)?`<button class="primary" onclick="sell(${o.id})">💰 Vender</button>`:""}<button class="danger" onclick="del(${o.id})">Excluir operação</button></div></div>`).join(""):"<div class='card muted'>Nenhuma operação cadastrada.</div>"}`;
-}
-function backup(){
- $("#app").innerHTML=`<h2>Backup e transferência</h2><div class="card"><h3>💾 Seus dados</h3><p class="muted">Os lançamentos ficam salvos neste navegador. Exporte um backup para levar tudo para outro aparelho ou instalação.</p><div class="actions"><button id="export">Exportar backup</button><button id="clear" class="danger">Apagar todos os dados</button></div></div>
- <div class="card"><h3>📥 Restaurar</h3><p class="muted">Escolha um arquivo de backup .json.</p><input id="file" type="file" accept=".json,application/json"></div>`;
- $("#export").onclick=()=>{let blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="gestor-revendas-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
- $("#clear").onclick=()=>{if(confirm("Apagar todas as operações?")){db={ops:[]};save();render()}};
- $("#file").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.ops||!Array.isArray(x.ops))throw 0;db=x;save();alert("Backup restaurado!");page="dashboard";render()}catch{alert("Arquivo de backup inválido.")}};r.readAsText(f)};
-}
-function edit(id){editId=id;page="novo";render()}
-function sell(id){
- const o=db.ops.find(x=>x.id===id); if(!o)return;
- const sugestao=suggested(o);
- const hoje=new Date().toISOString().slice(0,10);
- const modal=document.createElement("div"); modal.className="modal";
- modal.innerHTML=`<div class="modalbox">
- <div class="row"><h2>💰 Registrar venda</h2><button class="close" id="fecharVenda">✕</button></div>
- <div class="note"><b>${esc(o.modelo)}</b><br>Custo real: <b>${money(realCost(o))}</b> · Preço sugerido: <b>${money(sugestao)}</b></div>
- <div class="card"><div class="grid">
- <label class="full">Valor REAL recebido na venda<input id="vendaReal" type="number" min="0" step=".01" value="${Number(o.venda||0)||""}" placeholder="Ex.: 750"></label>
- <label>Data da venda<input id="dataVenda" type="date" value="${o.dataVendaISO||hoje}"></label>
- <label>Forma de pagamento<select id="formaVenda"><option>Pix</option><option>Dinheiro</option><option>Cartão</option><option>Transferência</option><option>Outro</option></select></label>
- <label>Taxa / maquininha<input id="taxaVenda" type="number" min="0" step=".01" value="${Number(o.taxa||0)}"></label>
- <label>Outros custos da venda<input id="outVenda" type="number" min="0" step=".01" value="${Number(o.outvenda||0)}"></label>
- </div></div>
- <div class="card"><h3>Resultado</h3><div id="previewVenda" class="note"></div></div>
- <div class="actions"><button class="primary" id="confirmarVenda">Confirmar venda</button><button id="cancelarVenda">Cancelar</button></div>
- </div>`;
- document.body.appendChild(modal);
- const vendaEl=modal.querySelector("#vendaReal"),taxaEl=modal.querySelector("#taxaVenda"),outEl=modal.querySelector("#outVenda"),prev=modal.querySelector("#previewVenda");
- function preview(){
-   const v=Number(vendaEl.value)||0, custosVenda=(Number(taxaEl.value)||0)+(Number(outEl.value)||0);
-   const lucro=v-realCost(o)-custosVenda, dif=v-sugestao;
-   prev.innerHTML=`Venda real: <b>${money(v)}</b> · Lucro líquido: <b class="${lucro>=0?"green":"red"}">${money(lucro)}</b><br>Diferença vs. sugerido: <b class="${dif>=0?"green":"red"}">${money(dif)}</b>`;
- }
- [vendaEl,taxaEl,outEl].forEach(e=>e.addEventListener("input",preview)); preview();
- const close=()=>modal.remove();
- modal.querySelector("#fecharVenda").onclick=close; modal.querySelector("#cancelarVenda").onclick=close;
- modal.querySelector("#confirmarVenda").onclick=()=>{
-   const v=Number(vendaEl.value)||0;
-   if(v<=0){alert("Informe o valor REAL da venda.");return}
-   o.venda=v; o.taxa=Number(taxaEl.value)||0; o.outvenda=Number(outEl.value)||0;
-   o.dataVendaISO=modal.querySelector("#dataVenda").value; o.dataVenda=new Date(o.dataVendaISO+"T12:00:00").toLocaleDateString("pt-BR");
-   o.formaVenda=modal.querySelector("#formaVenda").value; o.ultimaEdicao=new Date().toLocaleDateString("pt-BR");
-   save(); close(); page="estoque"; render();
- };
-}
-function del(id){if(confirm("Excluir esta operação?")){db.ops=db.ops.filter(o=>o.id!==id);save();historico()}}
-function render(){if(page==="novo")novo();if(page==="dashboard")dashboard();if(page==="estoque")estoque();if(page==="historico")historico();if(page==="backup")backup();$$("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page))}
-$$("nav button").forEach(b=>b.onclick=()=>{editId=null;page=b.dataset.page;render()});render();
-</script>
+<main>
+<section id="tab-new">
+  <h1>Nova operação</h1>
+  <div class="notice">Cadastre o produto uma única vez. Ao salvar, ele entra no <b>estoque</b>. A venda só acontece quando você clicar em <b>Vender</b> e informar o valor realmente recebido.</div>
+  <form id="form">
+    <div class="panel">
+      <h2>📱 Produto</h2>
+      <div class="two">
+        <div><label>Categoria</label><select id="category"><option>Celular</option><option>Videogame</option><option>Computador</option><option>Notebook</option><option>Tablet</option><option>Smartwatch</option><option>TV</option><option>Acessório</option><option>Outro</option></select></div>
+        <div><label>Modelo / produto</label><input id="model" required placeholder="Ex.: iPhone 13 128 GB"></div>
+      </div>
+      <div class="two">
+        <div><label>Condição</label><select id="condition"><option>Funcionando</option><option>Tela quebrada</option><option>Bateria ruim</option><option>Com defeito</option><option>Usado - bom estado</option><option>Novo</option><option>Outro</option></select></div>
+        <div><label>IMEI / nº de série / identificação</label><input id="identifier" placeholder="Opcional"></div>
+      </div>
+      <div class="two">
+        <div><label>Data da compra</label><input id="purchaseDate" type="date" required></div>
+        <div><label>Origem / fornecedor</label><input id="source" placeholder="Ex.: particular, Marketplace"></div>
+      </div>
+      <label>Observações</label><textarea id="notes" placeholder="Cor, estado, acessórios, defeitos, etc."></textarea>
+    </div>
+
+    <div class="panel">
+      <h2>💰 Compra e custos</h2>
+      <div class="three">
+        <div><label>Valor pago</label><input id="purchase" type="number" step="0.01" min="0" required></div>
+        <div><label>Reparo / peças</label><input id="repair" type="number" step="0.01" min="0" value="0"></div>
+        <div><label>Outros custos</label><input id="other" type="number" step="0.01" min="0" value="0"></div>
+      </div>
+      <div class="two">
+        <div><label>Custo de garantia / reserva</label><input id="warrantyCost" type="number" step="0.01" min="0" value="0"></div>
+        <div><label>Margem desejada (%)</label><input id="margin" type="number" step="0.1" min="0" value="25"></div>
+      </div>
+      <div class="notice" id="preview">Custo real: R$ 0,00 · Preço sugerido: R$ 0,00</div>
+      <div class="actions"><button class="primary" type="submit">📦 Adicionar ao estoque</button><button class="ghost" type="reset">Limpar</button></div>
+    </div>
+  </form>
+</section>
+
+<section id="tab-stock" class="hidden">
+  <h1>Estoque</h1>
+  <div class="grid">
+    <div class="card kpi"><div class="label">Itens disponíveis</div><div class="value" id="sQty">0</div></div>
+    <div class="card kpi"><div class="label">Custo investido</div><div class="value" id="sCost">R$ 0,00</div></div>
+    <div class="card kpi"><div class="label">Venda potencial</div><div class="value blue" id="sPotential">R$ 0,00</div></div>
+    <div class="card kpi"><div class="label">Lucro potencial</div><div class="value green" id="sProfit">R$ 0,00</div></div>
+  </div>
+  <div class="searchrow"><input id="stockSearch" placeholder="Buscar produto, categoria ou identificação..."><select id="stockFilter"><option value="all">Todos</option><option value="late">Mais de 30 dias</option><option value="late60">Mais de 60 dias</option><option value="late90">Mais de 90 dias</option></select></div>
+  <div id="stockList"></div>
+</section>
+
+<section id="tab-dashboard" class="hidden">
+  <h1>Dashboard</h1>
+  <div class="grid">
+    <div class="card kpi"><div class="label">Operações</div><div class="value" id="dOps">0</div></div>
+    <div class="card kpi"><div class="label">Faturamento</div><div class="value" id="dRevenue">R$ 0,00</div></div>
+    <div class="card kpi"><div class="label">Custo das vendas</div><div class="value" id="dCost">R$ 0,00</div></div>
+    <div class="card kpi"><div class="label">Lucro real</div><div class="value green" id="dProfit">R$ 0,00</div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2>📈 Giro e permanência</h2><div id="turnover"></div></div>
+    <div class="panel"><h2>🎯 Desempenho de venda</h2><div id="performance"></div></div>
+  </div>
+  <div class="panel"><h2>🏆 Melhores categorias</h2><div id="categories"></div></div>
+</section>
+
+<section id="tab-history" class="hidden">
+  <h1>Histórico</h1>
+  <div class="searchrow"><input id="historySearch" placeholder="Buscar..."><select id="historyFilter"><option value="all">Todos</option><option value="sold">Vendidos</option><option value="stock">Em estoque</option></select></div>
+  <div id="historyList"></div>
+</section>
+
+<section id="tab-backup" class="hidden">
+  <h1>Dados e segurança</h1>
+  <div class="panel">
+    <h2>💾 Seus dados</h2>
+    <p>Os lançamentos ficam salvos neste navegador usando <b>armazenamento local</b>. Para não depender de um único aparelho, use o backup abaixo.</p>
+    <div class="actions"><button class="secondary" id="exportJson">⬇️ Exportar backup completo</button><button class="secondary" id="exportCsv">📊 Exportar CSV</button><label class="secondary" style="text-align:center;cursor:pointer">⬆️ Restaurar backup <input id="importJson" type="file" accept=".json" hidden></label></div>
+  </div>
+  <div class="panel">
+    <h2>🧹 Manutenção</h2>
+    <p class="muted">Apagar todos os dados é irreversível. Faça um backup antes.</p>
+    <button class="danger" id="clearAll">Apagar todos os lançamentos</button>
+  </div>
+</section>
+</main>
+
+<div id="modal" class="modal hidden">
+  <div class="modalbox">
+    <div class="modalhead"><h2 id="modalTitle">Editar</h2><button class="x" onclick="closeModal()">×</button></div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
 <script>
-if ("serviceWorker" in navigator && location.protocol !== "file:") {
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+const KEY='gestor_revendas_v3';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"items":[]}');
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+const dateBR=s=>s?new Date(s+'T12:00:00').toLocaleDateString('pt-BR'):'—';
+const daysBetween=(a,b=new Date())=>Math.max(0,Math.floor((b-new Date(a+'T12:00:00'))/86400000));
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const costOf=x=>Number(x.purchase||0)+Number(x.repair||0)+Number(x.other||0)+Number(x.warrantyCost||0);
+const suggested=x=>{let c=costOf(x),m=Number(x.margin||0)/100; return m>=1?c:c/(1-m)};
+const profit=x=>Number(x.sale||0)-costOf(x);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+function updatePreview(){
+ const x={purchase:$('purchase').value,repair:$('repair').value,other:$('other').value,warrantyCost:$('warrantyCost').value,margin:$('margin').value};
+ $('preview').innerHTML=`Custo real: <b>${money(costOf(x))}</b> · Preço sugerido: <b>${money(suggested(x))}</b>`;
 }
+['purchase','repair','other','warrantyCost','margin'].forEach(id=>$(id).addEventListener('input',updatePreview));
+$('purchaseDate').value=new Date().toISOString().slice(0,10);
+
+$('form').addEventListener('submit',e=>{
+ e.preventDefault();
+ const x={id:uid(),category:$('category').value,model:$('model').value.trim(),condition:$('condition').value,identifier:$('identifier').value.trim(),purchaseDate:$('purchaseDate').value,source:$('source').value.trim(),notes:$('notes').value.trim(),purchase:+$('purchase').value||0,repair:+$('repair').value||0,other:+$('other').value||0,warrantyCost:+$('warrantyCost').value||0,margin:+$('margin').value||0,sale:0,saleDate:'',status:'stock',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+ db.items.unshift(x);save();e.target.reset();$('purchaseDate').value=new Date().toISOString().slice(0,10);$('margin').value=25;updatePreview();openTab('stock');renderAll();
+});
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
+function openTab(t){document.querySelectorAll('main>section').forEach(s=>s.classList.add('hidden'));$('tab-'+t).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));renderAll()}
+
+function age(x){return x.status==='sold'&&x.saleDate?daysBetween(x.purchaseDate,new Date(x.saleDate+'T12:00:00')):daysBetween(x.purchaseDate)}
+function itemCard(x,stock=false){
+ const c=costOf(x), sug=suggested(x), p=profit(x), a=age(x);
+ return `<div class="item">
+ <div class="itemtop"><div><div class="itemtitle">${esc(x.model)}</div><div class="muted">${esc(x.category)} · ${esc(x.condition)} ${x.identifier?'· '+esc(x.identifier):''}</div></div>
+ <span class="badge ${x.status==='stock'?'b-stock':x.status==='reserved'?'b-res':'b-sold'}">${x.status==='stock'?'ESTOQUE':x.status==='reserved'?'RESERVADO':'VENDIDO'}</span></div>
+ <div class="small muted" style="margin-top:8px">Compra: ${dateBR(x.purchaseDate)} ${x.status==='sold'?'· Venda: '+dateBR(x.saleDate):'· Permanência: '+a+' dias'}</div>
+ <div class="small" style="margin-top:8px">Custo real: <b>${money(c)}</b> · Sugerido: <b>${money(sug)}</b> ${x.status==='sold'?'· Venda real: <b>'+money(x.sale)+'</b> · Lucro: <b class="'+(p>=0?'green':'red')+'">'+money(p)+'</b>':''}</div>
+ ${x.status==='stock'?`<div class="actions"><button class="primary" onclick="sell('${x.id}')">💰 Vender</button><button class="secondary" onclick="edit('${x.id}')">✏️ Editar</button><button class="ghost" onclick="reserve('${x.id}')">${x.status==='reserved'?'Desreservar':'Reservar'}</button></div>`:`<div class="actions"><button class="secondary" onclick="edit('${x.id}')">✏️ Editar</button></div>`}
+ </div>`;
+}
+function renderStock(){
+ const all=db.items.filter(x=>x.status!=='sold');
+ const q=($('stockSearch').value||'').toLowerCase(), f=$('stockFilter').value;
+ let list=all.filter(x=>(x.model+' '+x.category+' '+x.identifier).toLowerCase().includes(q));
+ if(f==='late')list=list.filter(x=>age(x)>30);if(f==='late60')list=list.filter(x=>age(x)>60);if(f==='late90')list=list.filter(x=>age(x)>90);
+ $('sQty').textContent=all.length;$('sCost').textContent=money(all.reduce((a,x)=>a+costOf(x),0));$('sPotential').textContent=money(all.reduce((a,x)=>a+suggested(x),0));$('sProfit').textContent=money(all.reduce((a,x)=>a+suggested(x)-costOf(x),0));
+ $('stockList').innerHTML=list.length?list.map(x=>itemCard(x,true)).join(''):'<div class="empty">📦 Nenhum item no estoque.</div>';
+}
+function renderDashboard(){
+ const sold=db.items.filter(x=>x.status==='sold'), stock=db.items.filter(x=>x.status!=='sold');
+ const revenue=sold.reduce((a,x)=>a+Number(x.sale||0),0), cost=sold.reduce((a,x)=>a+costOf(x),0), pr=revenue-cost;
+ $('dOps').textContent=db.items.length;$('dRevenue').textContent=money(revenue);$('dCost').textContent=money(cost);$('dProfit').textContent=money(pr);
+ const avgSold=sold.length?sold.reduce((a,x)=>a+age(x),0)/sold.length:0, avgStock=stock.length?stock.reduce((a,x)=>a+age(x),0)/stock.length:0;
+ const turnoverRate=sold.length? (sold.length/(sold.length+stock.length))*100:0;
+ $('turnover').innerHTML=`<p>Tempo médio até a venda: <b>${avgSold.toFixed(1)} dias</b></p><p>Permanência média atual: <b>${avgStock.toFixed(1)} dias</b></p><p>Índice simples de giro do cadastro: <b>${turnoverRate.toFixed(1)}%</b></p><p>Estoque acima de 30 dias: <b>${stock.filter(x=>age(x)>30).length}</b></p><p>Estoque acima de 60 dias: <b>${stock.filter(x=>age(x)>60).length}</b></p><p>Estoque acima de 90 dias: <b>${stock.filter(x=>age(x)>90).length}</b></p>`;
+ const compared=sold.filter(x=>suggested(x)>0), avgDiff=compared.length?compared.reduce((a,x)=>a+(Number(x.sale)-suggested(x)),0)/compared.length:0, margin=revenue?pr/revenue*100:0;
+ $('performance').innerHTML=`<p>Margem real média: <b>${margin.toFixed(1)}%</b></p><p>Diferença média vs. preço sugerido: <b class="${avgDiff>=0?'green':'red'}">${money(avgDiff)}</b></p><p>Vendas com lucro: <b>${sold.filter(x=>profit(x)>0).length}</b></p><p>Vendas com prejuízo: <b>${sold.filter(x=>profit(x)<0).length}</b></p>`;
+ const cats={};db.items.forEach(x=>{cats[x.category]??={n:0,p:0};cats[x.category].n++;if(x.status==='sold')cats[x.category].p+=profit(x)});
+ $('categories').innerHTML=Object.entries(cats).sort((a,b)=>b[1].p-a[1].p).map(([k,v])=>`<div class="item"><b>${esc(k)}</b> · ${v.n} operação(ões) · lucro realizado <b class="${v.p>=0?'green':'red'}">${money(v.p)}</b></div>`).join('')||'<div class="empty">Sem dados.</div>';
+}
+function renderHistory(){
+ const q=($('historySearch').value||'').toLowerCase(),f=$('historyFilter').value;
+ let list=db.items.filter(x=>(x.model+' '+x.category+' '+x.identifier).toLowerCase().includes(q));
+ if(f==='sold')list=list.filter(x=>x.status==='sold');if(f==='stock')list=list.filter(x=>x.status!=='sold');
+ $('historyList').innerHTML=list.length?list.map(x=>itemCard(x)).join(''):'<div class="empty">Nenhum lançamento.</div>';
+}
+function renderAll(){renderStock();renderDashboard();renderHistory()}
+$('stockSearch').oninput=renderStock;$('stockFilter').onchange=renderStock;$('historySearch').oninput=renderHistory;$('historyFilter').onchange=renderHistory;
+
+function sell(id){
+ const x=db.items.find(i=>i.id===id);if(!x)return;
+ $('modalTitle').textContent='💰 Registrar venda';
+ $('modalContent').innerHTML=`<div class="notice"><b>${esc(x.model)}</b><br>Custo real: ${money(costOf(x))} · Preço sugerido: ${money(suggested(x))}<br>Compra: ${dateBR(x.purchaseDate)}</div>
+ <label>Data da venda</label><input id="mSaleDate" type="date" value="${new Date().toISOString().slice(0,10)}">
+ <label>Valor REAL recebido na venda</label><input id="mSale" type="number" step="0.01" min="0" placeholder="Ex.: 700">
+ <label>Canal da venda</label><select id="mChannel"><option>Particular</option><option>Marketplace</option><option>WhatsApp</option><option>Loja</option><option>Outro</option></select>
+ <div id="saleCalc" class="notice" style="margin-top:12px">Informe o valor para calcular.</div>
+ <div class="actions"><button class="primary" onclick="confirmSale('${id}')">Confirmar venda</button><button class="ghost" onclick="closeModal()">Cancelar</button></div>`;
+ $('mSale').oninput=()=>{let v=+$('mSale').value||0,p=v-costOf(x);$('saleCalc').innerHTML=`Venda real: <b>${money(v)}</b> · Lucro: <b class="${p>=0?'green':'red'}">${money(p)}</b> · Margem: <b>${v?(p/v*100).toFixed(1):'0.0'}%</b>`};
+ $('modal').classList.remove('hidden');
+}
+function confirmSale(id){
+ const x=db.items.find(i=>i.id===id),v=+$('mSale').value||0;if(!v)return alert('Informe o valor real da venda.');
+ x.sale=v;x.saleDate=$('mSaleDate').value;x.channel=$('mChannel').value;x.status='sold';x.updatedAt=new Date().toISOString();save();closeModal();renderAll();
+}
+function reserve(id){let x=db.items.find(i=>i.id===id);x.status=x.status==='reserved'?'stock':'reserved';save();renderAll()}
+function edit(id){
+ const x=db.items.find(i=>i.id===id);if(!x)return;
+ $('modalTitle').textContent='✏️ Editar operação';
+ $('modalContent').innerHTML=`<div class="two"><div><label>Categoria</label><input id="eCategory" value="${esc(x.category)}"></div><div><label>Modelo / produto</label><input id="eModel" value="${esc(x.model)}"></div></div>
+ <div class="two"><div><label>Condição</label><input id="eCondition" value="${esc(x.condition)}"></div><div><label>Identificação</label><input id="eIdentifier" value="${esc(x.identifier)}"></div></div>
+ <div class="two"><div><label>Data da compra</label><input id="ePurchaseDate" type="date" value="${x.purchaseDate}"></div><div><label>Data da venda</label><input id="eSaleDate" type="date" value="${x.saleDate||''}"></div></div>
+ <div class="three"><div><label>Compra</label><input id="ePurchase" type="number" step=".01" value="${x.purchase}"></div><div><label>Reparo / peças</label><input id="eRepair" type="number" step=".01" value="${x.repair}"></div><div><label>Outros custos</label><input id="eOther" type="number" step=".01" value="${x.other}"></div></div>
+ <div class="three"><div><label>Garantia / reserva</label><input id="eWarranty" type="number" step=".01" value="${x.warrantyCost}"></div><div><label>Margem desejada (%)</label><input id="eMargin" type="number" step=".1" value="${x.margin}"></div><div><label>Venda REAL</label><input id="eSale" type="number" step=".01" value="${x.sale||0}"></div></div>
+ <label>Origem / fornecedor</label><input id="eSource" value="${esc(x.source)}"><label>Observações</label><textarea id="eNotes">${esc(x.notes)}</textarea>
+ <div class="actions"><button class="primary" onclick="saveEdit('${id}')">Salvar alterações</button><button class="danger" onclick="deleteItem('${id}')">Excluir operação</button></div>`;
+ $('modal').classList.remove('hidden');
+}
+function saveEdit(id){
+ const x=db.items.find(i=>i.id===id);Object.assign(x,{category:$('eCategory').value,model:$('eModel').value,condition:$('eCondition').value,identifier:$('eIdentifier').value,purchaseDate:$('ePurchaseDate').value,saleDate:$('eSaleDate').value,purchase:+$('ePurchase').value||0,repair:+$('eRepair').value||0,other:+$('eOther').value||0,warrantyCost:+$('eWarranty').value||0,margin:+$('eMargin').value||0,sale:+$('eSale').value||0,source:$('eSource').value,notes:$('eNotes').value,updatedAt:new Date().toISOString()});
+ if(x.sale>0 && x.saleDate)x.status='sold';else if(x.status==='sold')x.status='stock';save();closeModal();renderAll();
+}
+function deleteItem(id){if(confirm('Excluir esta operação?')){db.items=db.items.filter(x=>x.id!==id);save();closeModal();renderAll()}}
+function closeModal(){$('modal').classList.add('hidden')}
+window.closeModal=closeModal;window.sell=sell;window.confirmSale=confirmSale;window.edit=edit;window.saveEdit=saveEdit;window.deleteItem=deleteItem;window.reserve=reserve;
+
+$('exportJson').onclick=()=>download('gestor-revendas-backup.json',JSON.stringify(db,null,2),'application/json');
+$('exportCsv').onclick=()=>{let h=['ID','Categoria','Produto','Condição','Identificação','Compra','Data compra','Reparo','Outros custos','Garantia','Custo real','Margem desejada','Preço sugerido','Venda real','Data venda','Permanência dias','Status','Canal','Origem','Observações'];let rows=db.items.map(x=>[x.id,x.category,x.model,x.condition,x.identifier,x.purchase,x.purchaseDate,x.repair,x.other,x.warrantyCost,costOf(x),x.margin,suggested(x),x.sale,x.saleDate,age(x),x.status,x.channel||'',x.source,x.notes]);let csv=[h,...rows].map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\\n');download('gestor-revendas.csv','\\ufeff'+csv,'text/csv;charset=utf-8')};
+function download(name,data,type){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+$('importJson').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.items))throw 0;db=d;save();renderAll();alert('Backup restaurado com sucesso.')}catch(_){alert('Arquivo de backup inválido.')}};r.readAsText(f)};
+$('clearAll').onclick=()=>{if(confirm('ATENÇÃO: apagar todos os lançamentos?')){db={items:[]};save();renderAll()}};
+renderAll();updatePreview();
 </script>
 </body>
 </html>
